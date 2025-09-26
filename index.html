@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CS180/280A – Project 2: Fun with Filters and Frequencies</title>
+  <link rel="stylesheet" href="styles.css?v=5">
+
+  </style>
+
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(','\\)'], ['$', '$']] } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+</head>
+<body>
+    <header class="hero">
+        <div class="container hero-inner">
+          <h1 style="opacity:1 !important; color:#0f172a !important; filter:none !important; -webkit-text-fill-color:#0f172a !important;">
+            Project 2 – Fun with Filters and Frequencies
+          </h1>
+          <p class="text-muted" style="opacity:1 !important; color:#0f172a !important; filter:none !important; -webkit-text-fill-color:#0f172a !important;">
+            CS180: Intro to Computer Vision &amp; Computational Photography
+          </p>
+          <p class="text-muted" style="opacity:1 !important; color:#0f172a !important; filter:none !important; -webkit-text-fill-color:#0f172a !important;">
+            by <em style="color:#f43f5e !important; opacity:1 !important; filter:none !important; -webkit-text-fill-color:#f43f5e !important;">Mansoor Mamnoon</em>
+          </p>
+      
+          <nav class="nav" aria-label="Project sections">
+            <a href="#part1" style="opacity:1 !important; color:#0f172a !important; filter:none !important; -webkit-text-fill-color:#0f172a !important;">Part 1 — Fun with Filters</a>
+            <a href="#p11" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">1.1 Convolutions from Scratch</a>
+            <a href="#p12" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">1.2 Finite Difference Operator</a>
+            <a href="#p13" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">1.3 Derivative of Gaussian (DoG)</a>
+            <a href="#part2" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">Part 2 — Fun with Frequencies</a>
+            <a href="#p21" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">2.1 Image “Sharpening”</a>
+            <a href="#p22" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">2.2 Hybrid Images</a>
+            <a href="#p23" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">2.3 Gauss &amp; Laplace Stacks</a>
+            <a href="#p24" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">2.4 Multires Blending (Oraple + Irregular)</a>
+          </nav>
+        </div>
+      </header>
+      
+      <main>
+        <section id="part1-1" class="section">
+          <h2 style="opacity:1 !important; color:#0f172a !important; filter:none !important; -webkit-text-fill-color:#0f172a !important;">
+            Part 1.1: Convolutions from Scratch
+          </h2>
+          <p class="lead" style="opacity:1 !important; color:#0f172a !important; filter:none !important; -webkit-text-fill-color:#0f172a !important;">
+            I implemented 2D convolution two ways with numpy (4-loop and 2-loop). i use zero padding so output size matches input.
+          </p>
+        <!-- input -->
+        <div class="card">
+          <span class="badge">input</span>
+          <div class="grid-balanced mt-12">
+            <figure>
+              <img class="img-clamp" src="assets/q1_1/selfie.jpg" alt="selfie (grayscale)">
+              <figcaption class="caption">selfie used for box / Dx / Dy tests.</figcaption>
+            </figure>
+            <div>
+              <h3 class="mt-0">what i implement</h3>
+              <ul>
+                <li>zero padding with fill 0 (same spatial size)</li>
+                <li>4-loop convolution (explicit multiplications)</li>
+                <li>2-loop convolution (vectorized window dot-product)</li>
+                <li>9×9 box, \(D_x=[1,0,-1]\), \(D_y=[1,0,-1]^T\)</li>
+              </ul>
+              <div class="explain mt-12">
+                <h4>how i compute “difference” vs scipy</h4>
+                <p>i compare my outputs with <code>scipy.signal.convolve2d</code> using the same settings (<code>mode="same"</code>, <code>boundary="fill"</code>, <code>fillvalue=0</code>) and a flipped kernel on the scipy call so both are true convolution (not correlation). i report:</p>
+                <ul>
+                  <li><em>max abs diff</em>: \(\displaystyle \max_{y,x} |A(y,x)-B(y,x)|\)</li>
+                  <li>(and i save the numbers to <code>out/q1_1/*.txt</code> from my script)</li>
+                </ul>
+                <div class="sub">
+                  <p><strong>snippet (from my script):</strong></p>
+      <pre><code>boxs = convolve2d(img, B9[::-1, ::-1], mode="same", boundary="fill", fillvalue=0)
+      dxs  = convolve2d(img, Dx[::-1, ::-1], mode="same", boundary="fill", fillvalue=0)
+      dys  = convolve2d(img, Dy[::-1, ::-1], mode="same", boundary="fill", fillvalue=0)
+      
+      diff = np.max(np.abs(my_result - scipy_result))  # number i report
+      </code></pre>
+                  <p>values around <code>1e-7</code> mean they’re the same up to float rounding. larger values usually come from boundary or kernel flip mismatches.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      
+        <!-- 4-loop box filter story -->
+        <div class="card mt-16">
+          <div class="grid-balanced">
+            <div>
+              <span class="badge">code (4 loops + padding)</span>
+      <pre class="mt-6"><code>def conv_4_loops(img, k):  # zero-pad; textbook convolution
+          hi, wi = img.shape
+          hk, wk = k.shape
+          ph, pw = hk//2, wk//2  # zero padding
+          padded = np.pad(img, ((ph,ph),(pw,pw)), mode='constant', constant_values=0)
+          out = np.zeros_like(img)
+          for y in range(hi):
+              for x in range(wi):
+                  acc = 0.0
+                  for j in range(hk):
+                      for i in range(wk):
+                          acc = acc + k[j,i] * padded[y+j, x+i]
+                  out[y,x] = acc
+          return out
+      </code></pre>
+              <div class="explain">
+                <h4>what this block does</h4>
+                <ul>
+                  <li>slides the flipped kernel over a zero-padded image (true convolution)</li>
+                  <li>keeps output height/width identical to input</li>
+                </ul>
+              </div>
+            </div>
+            <figure>
+              <img class="img-clamp" src="assets/q1_1/selfie_box9_4loops.png" alt="4-loop box result">
+              <figcaption class="caption">4-loop 9×9 box on selfie.</figcaption>
+              <table class="table mt-12">
+                <tr><th>diff vs SciPy</th><td>3.57627869e-07 (max abs)</td></tr>
+                <tr><th>runtime</th><td>slowest (baseline)</td></tr>
+                <tr><th>boundary</th><td>zero fill</td></tr>
+              </table>
+            </figure>
+          </div>
+        </div>
+      
+        <!-- 2-loop box filter story -->
+        <div class="card mt-16">
+          <div class="grid-balanced">
+            <div>
+              <span class="badge">code (2 loops + padding)</span>
+      <pre class="mt-6"><code>def conv_2_loops(img, k):  # window multiply–sum
+          hi, wi = img.shape
+          hk, wk = k.shape
+          ph, pw = hk//2, wk//2
+          padded = np.pad(img, ((ph,ph),(pw,pw)), mode='constant', constant_values=0)
+          out = np.zeros_like(img)
+          for y in range(hi):
+              row = padded[y:y+hk, :]
+              for x in range(wi):
+                  win = row[:, x:x+wk]
+                  out[y,x] = np.sum(win * k)  # dot-product on the window
+          return out
+      </code></pre>
+              <div class="explain">
+                <h4>what this block does</h4>
+                <ul>
+                  <li>same math as 4-loop, but uses a vectorized multiply–sum per pixel</li>
+                  <li>cleaner and much faster</li>
+                </ul>
+              </div>
+            </div>
+            <figure>
+              <img class="img-clamp" src="assets/q1_1/selfie_box9_2loops.png" alt="2-loop box result">
+              <figcaption class="caption">2-loop 9×9 box on selfie.</figcaption>
+              <table class="table mt-12">
+                <tr><th>diff vs SciPy</th><td>3.57627869e-07 (max abs)</td></tr>
+                <tr><th>diff vs 4-loop</th><td>9.53674316e-07 (max abs)</td></tr>
+                <tr><th>runtime</th><td>much faster than 4-loop</td></tr>
+              </table>
+            </figure>
+          </div>
+        </div>
+      
+        <!-- finite differences -->
+        <div class="card mt-16">
+          <div class="grid-balanced">
+            <div>
+              <span class="badge">finite differences</span>
+      <pre class="mt-6"><code>D_x = np.array([[1., 0., -1.]], dtype=np.float32)
+      D_y = D_x.T
+      gx_2 = conv_2_loops(img, D_x)
+      gy_2 = conv_2_loops(img, D_y)
+      gx_4 = conv_4_loops(img, D_x)
+      gy_4 = conv_4_loops(img, D_y)
+      </code></pre>
+              <div class="explain">
+                <h4>why some diffs are larger here</h4>
+                <p>with zero padding, a sharp 0↔1 edge can yield responses near 2 for \([1,0,-1]\). if kernel orientation or boundary conventions don’t match exactly, you’ll see diffs around ~2 even when the interior matches. i match both flip and boundary when i compare.</p>
+              </div>
+            </div>
+            <div>
+              <table class="table">
+                <tr><th>Dx (2-loop) vs SciPy</th><td>1.99215686e+00</td></tr>
+                <tr><th>Dx (4-loop) vs Dx (2-loop)</th><td>0.00000000e+00</td></tr>
+                <tr><th>Dx (4-loop) vs SciPy</th><td>1.99215686e+00</td></tr>
+                <tr><th>Dy (2-loop) vs SciPy</th><td>1.78039217e+00</td></tr>
+                <tr><th>Dy (4-loop) vs SciPy</th><td>1.78039217e+00</td></tr>
+              </table>
+              <p class="caption mt-6">these match my <code>out/q1_1/*.txt</code> logs.</p>
+            </div>
+          </div>
+        </div>
+      
+        <!-- selfie box & edges gallery -->
+        <div class="card mt-16">
+          <span class="badge">results</span>
+          <div class="grid grid-3 mt-12">
+            <figure>
+              <img class="img-sm" src="assets/q1_1/selfie_box9_2loops.png" alt="box 2-loop">
+              <figcaption class="caption">box (2-loop)</figcaption>
+            </figure>
+            <figure>
+              <img class="img-sm" src="assets/q1_1/selfie_dx_2loops.png" alt="Dx 2-loop">
+              <figcaption class="caption">Dx (2-loop)</figcaption>
+            </figure>
+            <figure>
+              <img class="img-sm" src="assets/q1_1/selfie_dy_2loops.png" alt="Dy 2-loop">
+              <figcaption class="caption">Dy (2-loop)</figcaption>
+            </figure>
+          </div>
+        </div>
+      
+        <!-- boundary + timing -->
+        <div class="card mt-16">
+          <div class="grid-balanced">
+            <div>
+              <h3 class="mt-0">how i compare to scipy</h3>
+              <p>
+                same padding (zero), same size (<code>same</code>). i report max-abs difference for equivalence.
+                for timing i run each method multiple times and compare medians. 2-loop beats 4-loop by a lot (scipy’s compiled code is still fastest).
+              </p>
+            </div>
+            <div class="callout">
+              <strong>takeaway:</strong> writing both versions made convolution “click.” moving from 4 loops to a 2-loop window dot-product gives a big speedup with the
+              same output. matching kernel flip and boundary is key when comparing to scipy.
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      
+
+<!-- ===== Scoped force-opaque just for Section 1.2 ===== -->
+<!-- ===== Scoped helpers only for Section 1.2 ===== -->
+<style>
+  /* keep MathJax visible here */
+  #p12 mjx-container { 
+    opacity: 1 !important; 
+    filter: none !important; 
+    mix-blend-mode: normal !important; 
+  }
+  /* make math inherit the paragraph color (no more forced white) */
+  #p12 .math-sync mjx-container,
+  #p12 .math-sync mjx-container * {
+    color: currentColor !important;
+    -webkit-text-fill-color: currentColor !important;
+  }
+</style>
+
+<section id="p12" class="section">
+  <h2
+    style="opacity:1 !important; color:#0f172a !important; filter:none !important; -webkit-text-fill-color:#0f172a !important; text-shadow:none !important;">
+    Part 1.2: Finite Difference Operator
+  </h2>
+
+  <!-- Math adopts the paragraph's color only -->
+  <p class="lead math-sync"
+     style="opacity:1 !important; color:#0f172a !important; filter:none !important; -webkit-text-fill-color:#0f172a !important; text-shadow:none !important;">
+    I start with the cameraman image and take simple finite differences in \(x\) and \(y\): \(D_x=[1,0,-1]\) and \(D_y=D_x^\top\).
+    These show the signed rate of change horizontally and vertically. From there I combine them into a gradient magnitude image
+    and finally decide on a binary edge map by thresholding, trading off noise against completeness of real edges.
+  </p>
+
+  <!-- Dx / Dy (signed) -->
+  <div class="card mt-12">
+    <span class="badge">Signed partial derivatives</span>
+    <div class="grid grid-3 mt-12">
+      <figure>
+        <img src="assets/q1_2/cameraman_dx.png" alt="∂I/∂x (signed)">
+        <figcaption class="caption">∂I/∂x highlights vertical edges (left↔right contrast).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q1_2/cameraman_dy.png" alt="∂I/∂y (signed)">
+        <figcaption class="caption">∂I/∂y highlights horizontal edges (top↔bottom contrast).</figcaption>
+      </figure>
+      <div class="explain math-sync">
+        <h4>How I compute them</h4>
+        <p>
+          I convolve the grayscale image with \(D_x\) and \(D_y\) using
+          <code>scipy.signal.convolve2d</code> (<code>mode="same"</code>, <code>boundary="fill"</code>, <code>fillvalue=0</code>)
+          so the output size matches the input. This matches my conventions in 1.1 (true convolution with zero padding).
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gradient magnitude -->
+  <div class="card mt-16">
+    <span class="badge">Gradient magnitude</span>
+    <div class="grid grid-2 mt-12">
+      <figure>
+        <img src="assets/q1_2/cameraman_gradmag.png" alt="‖∇I‖">
+        <figcaption class="caption">‖∇I‖ = √(g<sub>x</sub><sup>2</sup> + g<sub>y</sub><sup>2</sup>). Unsigned edges, cleaner than the signed maps.</figcaption>
+      </figure>
+      <div class="explain math-sync">
+        <h4>Why magnitude?</h4>
+        <p>
+          Combining \(g_x\) and \(g_y\) removes sign and strengthens real boundaries even when they are slanted.
+          It also tones down checkerboard artifacts that can show up in the separate partials.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- What is t? -->
+  <div class="card mt-16">
+    <span class="badge">What is t?</span>
+    <div class="explain math-sync">
+      <p>
+        I first normalize the gradient magnitude to \([0,1]\) for display. Then I produce a binary edge map by
+        keeping pixels whose strength is at least \(t\): \(\text{edges}(y,x)=\mathbf{1}\{\|\nabla I(y,x)\|\ge t\}\).
+        I swept \(t\in\{0.10,0.15,0.20,0.25,0.30,0.35\}\) and saved each result for visual comparison.
+      </p>
+    </div>
+  </div>
+
+  <!-- Threshold sweep -->
+  <div class="card mt-16">
+    <span class="badge">Threshold sweep (for comparison)</span>
+    <div class="grid grid-3 mt-12">
+      <figure>
+        <img src="assets/q1_2/cameraman_edges_bin_t010.png" alt="Edges t=0.10">
+        <figcaption class="caption">t = 0.10</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q1_2/cameraman_edges_bin_t015.png" alt="Edges t=0.15">
+        <figcaption class="caption">t = 0.15</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q1_2/cameraman_edges_bin_t020.png" alt="Edges t=0.20">
+        <figcaption class="caption">t = 0.20</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q1_2/cameraman_edges_bin_t025.png" alt="Edges t=0.25">
+        <figcaption class="caption">t = 0.25</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q1_2/cameraman_edges_bin_t030.png" alt="Edges t=0.30">
+        <figcaption class="caption">t = 0.30</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q1_2/cameraman_edges_bin_t035.png" alt="Edges t=0.35">
+        <figcaption class="caption">t = 0.35</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- Final pick + reasoning -->
+  <div class="card mt-16">
+    <span class="badge">Final edge map</span>
+    <div class="grid-balanced mt-12">
+      <figure>
+        <img src="assets/q1_2/cameraman_edges_bin_t020.png" alt="Chosen edges (t=0.20)">
+        <figcaption class="caption">Chosen threshold: <strong>t = 0.20</strong></figcaption>
+      </figure>
+      <div>
+        <h3 class="mt-0">Why I chose t = 0.20</h3>
+        <p>
+          I compared tripod legs, the camera outline, the coat edge, and background speckle across the sweep.
+          At t=0.10 the background speckle is heavy and small textures dominate.
+          t=0.15 is better but still brings in grain.
+          At <strong>t=0.20</strong> the main structure remains clean and continuous while the background noise drops a lot.
+          0.25 and above start erasing thin tripod edges and details around the hands.
+          So 0.20 is the best tradeoff for keeping real contours without clutter.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+
+<!-- Part 1.3: Derivative of Gaussian (DoG) -->
+<!-- ===== Scoped helpers only for Section 1.3 ===== -->
+<style>
+  /* keep MathJax visible here */
+  #p13 mjx-container{
+    opacity:1 !important;
+    filter:none !important;
+    mix-blend-mode:normal !important;
+  }
+  /* make math inherit the surrounding text color */
+  #p13 .math-sync mjx-container,
+  #p13 .math-sync mjx-container *{
+    color:currentColor !important;
+    -webkit-text-fill-color:currentColor !important;
+  }
+</style>
+
+<section id="p13" class="section">
+  <h2
+    style="opacity:1 !important; color:#0f172a !important; filter:none !important; -webkit-text-fill-color:#0f172a !important; text-shadow:none !important;">
+    Part 1.3: Derivative of Gaussian (DoG) Filter
+  </h2>
+
+  <p class="lead math-sync"
+     style="opacity:1 !important; color:#0f172a !important; filter:none !important; -webkit-text-fill-color:#0f172a !important; text-shadow:none !important;">
+    The plain difference operator from 1.2 is noisy. I first smooth with a Gaussian \(G\) built from
+    <code>cv2.getGaussianKernel</code> by taking an outer product to get a 2D kernel. Then I repeat 1.2 on the blurred
+    image. After that I do the same thing in one pass using DoG filters:
+    \(k_x = G * D_x\) and \(k_y = G * D_y\). I compare the two results.
+  </p>
+
+  <!-- DoG kernels (visualized) -->
+<div class="card mt-12">
+  <span class="badge">DoG filters (visualized)</span>
+  <div class="grid grid-2 mt-12">
+    <figure>
+      <img src="assets/q1_3/dog_kx.png" alt="DoG kx"
+           style="width:420px; height:420px; object-fit:contain; image-rendering:crisp-edges;">
+      <figcaption class="caption">\(k_x = G * D_x\)</figcaption>
+    </figure>
+    <figure>
+      <img src="assets/q1_3/dog_ky.png" alt="DoG ky"
+           style="width:420px; height:420px; object-fit:contain; image-rendering:crisp-edges;">
+      <figcaption class="caption">\(k_y = G * D_y\)</figcaption>
+    </figure>
+  </div>
+</div>
+
+  <!-- Blur then differentiate -->
+  <div class="card mt-16">
+    <span class="badge">Blur → gradients</span>
+    <div class="grid grid-2 mt-12">
+      <figure>
+        <img src="assets/q1_3/cameraman_blur.png" alt="Gaussian-blurred cameraman">
+        <figcaption class="caption">Cameraman after Gaussian blur (size 9, \(\sigma=1.5\)).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q1_3/cameraman_blur_gradmag.png" alt="Gradmag after blur">
+        <figcaption class="caption">Gradient magnitude of the blurred image.</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- One-pass DoG -->
+  <div class="card mt-16">
+    <span class="badge">DoG in one pass</span>
+    <div class="grid grid-2 mt-12">
+      <figure>
+        <img src="assets/q1_3/cameraman_dog_gradmag.png" alt="Gradmag via DoG">
+        <figcaption class="caption">Gradient magnitude from DoG (\(k_x,k_y\)) in a single convolution step.</figcaption>
+      </figure>
+      <div class="explain math-sync">
+        <h4>What changes compared to 1.2?</h4>
+        <p>
+          The blur reduces high-frequency noise before differencing. Edges look cleaner and less speckled.
+          The DoG version matches the blur→diff result, since convolving with \(G\) and then with \(D_x\) is
+          equivalent to convolving once with \(G*D_x\) (and similarly for \(y\)).
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Threshold sweeps for both methods -->
+  <div class="card mt-16">
+    <span class="badge">Threshold sweep (blur→diff)</span>
+    <div class="grid grid-3 mt-12">
+      <figure><img src="assets/q1_3/cameraman_blur_edges_t010.png" alt="blur edges t=0.10"><figcaption class="caption">t = 0.10</figcaption></figure>
+      <figure><img src="assets/q1_3/cameraman_blur_edges_t015.png" alt="blur edges t=0.15"><figcaption class="caption">t = 0.15</figcaption></figure>
+      <figure><img src="assets/q1_3/cameraman_blur_edges_t020.png" alt="blur edges t=0.20"><figcaption class="caption">t = 0.20</figcaption></figure>
+      <figure><img src="assets/q1_3/cameraman_blur_edges_t025.png" alt="blur edges t=0.25"><figcaption class="caption">t = 0.25</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="card mt-16">
+    <span class="badge">Threshold sweep (DoG once)</span>
+    <div class="grid grid-3 mt-12">
+      <figure><img src="assets/q1_3/cameraman_dog_edges_t010.png"  alt="dog edges t=0.10"><figcaption class="caption">t = 0.10</figcaption></figure>
+      <figure><img src="assets/q1_3/cameraman_dog_edges_t015.png"  alt="dog edges t=0.15"><figcaption class="caption">t = 0.15</figcaption></figure>
+      <figure><img src="assets/q1_3/cameraman_dog_edges_t020.png"  alt="dog edges t=0.20"><figcaption class="caption">t = 0.20</figcaption></figure>
+      <figure><img src="assets/q1_3/cameraman_dog_edges_t025.png"  alt="dog edges t=0.25"><figcaption class="caption">t = 0.25</figcaption></figure>
+    </div>
+  </div>
+
+  <!-- Side-by-side at the common t -->
+  <div class="card mt-16">
+    <span class="badge">Side-by-side at t = 0.20</span>
+    <div class="grid grid-2 mt-12">
+      <figure>
+        <img src="assets/q1_3/cameraman_blur_edges_t020.png" alt="blur→diff t=0.20">
+        <figcaption class="caption">Blur → diff, t = 0.20</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q1_3/cameraman_dog_edges_t020.png" alt="DoG t=0.20">
+        <figcaption class="caption">DoG once, t = 0.20</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- Numerical check -->
+  <div class="card mt-16">
+    <span class="badge">Do they match?</span>
+    <div class="grid-balanced mt-12">
+      <div class="explain">
+        <h4>Interior agreement</h4>
+        <p class="math-sync">
+          On the interior (I trim a small border), the max absolute differences are tiny:
+          \(|g_x| \approx 3.34\times10^{-7}\), \(|g_y| \approx 3.84\times10^{-7}\),
+          and \(|\|\nabla I\|\!| \approx 3.92\times10^{-7}\).
+        </p>
+        <h4>Why trimming fixes it</h4>
+        <p>
+          With <code>mode="same"</code> and zero padding, the blur spreads mass outside the image near the boundary.
+          The order of operations interacts with that padding. DoG and blur→diff treat the first few pixels
+          differently along the border, which gives noticeable edge differences. Once I crop away a small margin
+          equal to the kernel half-size, both pipelines see the same neighborhood and they match up to float rounding.
+        </p>
+      </div>
+      <div class="callout">
+        <p class="math-sync">
+          Without trimming the border, max diffs are around \(3.67\times10^{-1}\) because those boundary conventions
+          do not align. After trimming, the two methods are effectively the same.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+  
+
+<section id="part2" class="section">
+  <h2>Part 2: Fun with Frequencies</h2>
+</section>
+
+<section id="part2-1">
+    <h2>Part 2.1: Image "Sharpening"</h2>
+    <p>
+      I used unsharp masking to sharpen images. I first blurred with a Gaussian, then subtracted to isolate high frequencies, and finally added these high frequencies back, scaled by a sharpening strength α. Increasing α exaggerates edges but can also introduce artifacts.
+    </p>
+  
+    <!-- Taj Mahal -->
+    <h3>Taj Mahal</h3>
+    <div class="img-row">
+      <figure><img src="assets/q2_1/taj/input.png" width="250"><figcaption>Input</figcaption></figure>
+      <figure><img src="assets/q2_1/taj/low.png" width="250"><figcaption>Blurred</figcaption></figure>
+      <figure><img src="assets/q2_1/taj/high.png" width="250"><figcaption>High-pass</figcaption></figure>
+      <figure><img src="assets/q2_1/taj/sharp_strength0.5.png" width="250"><figcaption>Sharpened (0.5)</figcaption></figure>
+      <figure><img src="assets/q2_1/taj/sharp_strength1.0.png" width="250"><figcaption>Sharpened (1.0)</figcaption></figure>
+      <figure><img src="assets/q2_1/taj/sharp_strength1.5.png" width="250"><figcaption>Sharpened (1.5)</figcaption></figure>
+    </div>
+  
+    <!-- Cat portrait -->
+    <h3>Cat Portrait</h3>
+    <div class="img-row">
+      <figure><img src="assets/q2_1/portrait/input.png" width="250"><figcaption>Input</figcaption></figure>
+      <figure><img src="assets/q2_1/portrait/low.png" width="250"><figcaption>Blurred</figcaption></figure>
+      <figure><img src="assets/q2_1/portrait/high.png" width="250"><figcaption>High-pass</figcaption></figure>
+      <figure><img src="assets/q2_1/portrait/sharp_strength0.5.png" width="250"><figcaption>0.5</figcaption></figure>
+      <figure><img src="assets/q2_1/portrait/sharp_strength1.0.png" width="250"><figcaption>1.0</figcaption></figure>
+      <figure><img src="assets/q2_1/portrait/sharp_strength1.5.png" width="250"><figcaption>1.5</figcaption></figure>
+    </div>
+  
+    <!-- Cityscape -->
+    <h3>Cityscape</h3>
+    <div class="img-row">
+      <figure><img src="assets/q2_1/cityscape/input.png" width="250"><figcaption>Input</figcaption></figure>
+      <figure><img src="assets/q2_1/cityscape/low.png" width="250"><figcaption>Blurred</figcaption></figure>
+      <figure><img src="assets/q2_1/cityscape/high.png" width="250"><figcaption>High-pass</figcaption></figure>
+      <figure><img src="assets/q2_1/cityscape/sharp_strength0.5.png" width="250"><figcaption>0.5</figcaption></figure>
+      <figure><img src="assets/q2_1/cityscape/sharp_strength1.0.png" width="250"><figcaption>1.0</figcaption></figure>
+      <figure><img src="assets/q2_1/cityscape/sharp_strength1.5.png" width="250"><figcaption>1.5</figcaption></figure>
+    </div>
+  
+    <!-- Old photograph -->
+    <h3>Old Photograph</h3>
+    <div class="img-row">
+      <figure><img src="assets/q2_1/oldphoto/input.png" width="250"><figcaption>Input</figcaption></figure>
+      <figure><img src="assets/q2_1/oldphoto/low.png" width="250"><figcaption>Blurred</figcaption></figure>
+      <figure><img src="assets/q2_1/oldphoto/high.png" width="250"><figcaption>High-pass</figcaption></figure>
+      <figure><img src="assets/q2_1/oldphoto/sharp_strength0.5.png" width="250"><figcaption>0.5</figcaption></figure>
+      <figure><img src="assets/q2_1/oldphoto/sharp_strength1.0.png" width="250"><figcaption>1.0</figcaption></figure>
+      <figure><img src="assets/q2_1/oldphoto/sharp_strength1.5.png" width="250"><figcaption>1.5</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="part2-2">
+    <h2>Part 2.2: Hybrid Images</h2>
+    <p>
+      I aligned image pairs interactively and combined the low-pass of one with the high-pass of the other. Hybrids appear differently depending on viewing distance: close-up you see the high-frequency image, while from afar the low-frequency image dominates.
+    </p>
+  
+    <!-- Example 1 -->
+    <h3>Derek + Nutmeg (official example)</h3>
+    <div class="img-row">
+      <figure><img src="assets/q2_2/derek_nutmeg/a_aligned.png" width="200"><figcaption>Aligned A</figcaption></figure>
+      <figure><img src="assets/q2_2/derek_nutmeg/b_aligned.png" width="200"><figcaption>Aligned B</figcaption></figure>
+      <figure><img src="assets/q2_2/derek_nutmeg/low.png" width="200"><figcaption>Low(A)</figcaption></figure>
+      <figure><img src="assets/q2_2/derek_nutmeg/high.png" width="200"><figcaption>High(B)</figcaption></figure>
+      <figure><img src="assets/q2_2/derek_nutmeg/hybrid.png" width="200"><figcaption>Hybrid</figcaption></figure>
+    </div>
+    <div class="img-row">
+      <figure><img src="assets/q2_2/derek_nutmeg/a_fft.png" width="200"><figcaption>FFT(A)</figcaption></figure>
+      <figure><img src="assets/q2_2/derek_nutmeg/b_fft.png" width="200"><figcaption>FFT(B)</figcaption></figure>
+      <figure><img src="assets/q2_2/derek_nutmeg/hybrid_fft.png" width="200"><figcaption>FFT(Hybrid)</figcaption></figure>
+    </div>
+  
+    <!-- Example 2 -->
+    <h3>Einstein + Marilyn</h3>
+    <div class="img-row">
+      <figure><img src="assets/q2_2/einstein_mar/a_aligned.png" width="200"><figcaption>Aligned A</figcaption></figure>
+      <figure><img src="assets/q2_2/einstein_mar/b_aligned.png" width="200"><figcaption>Aligned B</figcaption></figure>
+      <figure><img src="assets/q2_2/einstein_mar/low.png" width="200"><figcaption>Low(A)</figcaption></figure>
+      <figure><img src="assets/q2_2/einstein_mar/high.png" width="200"><figcaption>High(B)</figcaption></figure>
+      <figure><img src="assets/q2_2/einstein_mar/hybrid.png" width="200"><figcaption>Hybrid</figcaption></figure>
+    </div>
+  
+    <!-- Example 3 -->
+    <h3>Cat + Lion</h3>
+    <div class="img-row">
+      <figure><img src="assets/q2_2/cat_lion/a_aligned.png" width="200"><figcaption>Aligned A</figcaption></figure>
+      <figure><img src="assets/q2_2/cat_lion/b_aligned.png" width="200"><figcaption>Aligned B</figcaption></figure>
+      <figure><img src="assets/q2_2/cat_lion/low.png" width="200"><figcaption>Low(A)</figcaption></figure>
+      <figure><img src="assets/q2_2/cat_lion/high.png" width="200"><figcaption>High(B)</figcaption></figure>
+      <figure><img src="assets/q2_2/cat_lion/hybrid.png" width="200"><figcaption>Hybrid</figcaption></figure>
+    </div>
+  </section>
+
+<section id="p23" class="section">
+  <h3>Part 2.3: Gaussian and Laplacian Stacks</h3>
+  <p>I implemented stacks (no downsampling) and reproduced Szeliski Fig. 3.42-style layouts. I tile each level with min-max normalization for visibility and include the 4×3 grid (three Laplacian bands + masked originals + final blend).</p>
+
+  <div class="grid">
+    <figure><img src="assets/q2_3/apple_gauss_stack.png" alt="apple G"><figcaption>Apple: Gaussian stack</figcaption></figure>
+    <figure><img src="assets/q2_3/apple_lap_stack.png"   alt="apple L"><figcaption>Apple: Laplacian stack</figcaption></figure>
+    <figure><img src="assets/q2_3/orange_gauss_stack.png" alt="orange G"><figcaption>Orange: Gaussian stack</figcaption></figure>
+    <figure><img src="assets/q2_3/orange_lap_stack.png"   alt="orange L"><figcaption>Orange: Laplacian stack</figcaption></figure>
+    <figure class="wide"><img src="assets/q2_3/szeliski_342_grid.png" alt="4x3 grid"><figcaption>Fig 3.42-style 4×3 grid</figcaption></figure>
+  </div>
+</section>
+
+<section id="p24" class="section">
+  <h3>Part 2.4: Multiresolution Blending (a.k.a. the Oraple!)</h3>
+  <p>I blend with a cosine step mask (vertical) for apple+orange, a circular irregular mask for cat+dog, and my own before/after portrait where I align interactively, crop the top 20% for framing, and use a vertical cosine seam.</p>
+
+  <div class="grid">
+    <figure><img src="assets/q2_4/oraple_vertical/mask.png" alt="mask"><figcaption>Oraple mask</figcaption></figure>
+    <figure><img src="assets/q2_4/oraple_vertical/result.png" alt="oraple"><figcaption>Oraple result</figcaption></figure>
+    <figure><img src="assets/q2_4/cat_dog_irregular/mask.png" alt="mask"><figcaption>Irregular mask</figcaption></figure>
+    <figure><img src="assets/q2_4/cat_dog_irregular/result.png" alt="cd"><figcaption>Cat + Dog</figcaption></figure>
+    <figure><img src="assets/q2_4/cat_dog_irregular/lap_outputs_tile.png" alt="Lout"><figcaption>Laplacian outputs (favorite)</figcaption></figure>
+  </div>
+
+  <div class="grid">
+    <figure><img src="assets/q2_4/me_before_after_vertical_aligned/aligned_A.png" alt="A aligned"><figcaption>Before (aligned, cropped top 20%)</figcaption></figure>
+    <figure><img src="assets/q2_4/me_before_after_vertical_aligned/aligned_B.png" alt="B aligned"><figcaption>After (aligned, cropped)</figcaption></figure>
+    <figure><img src="assets/q2_4/me_before_after_vertical_aligned/mask.png" alt="mask"><figcaption>Vertical cosine mask</figcaption></figure>
+    <figure class="wide"><img src="assets/q2_4/me_before_after_vertical_aligned/result.png" alt="result"><figcaption>Before/After blend</figcaption></figure>
+  </div>
+
+  <p><strong>Note:</strong> I clicked the same two landmarks (left eye center, nose tip) in both images to align. Cropping the top 20% avoids blank background and centers the face.</p>
+</section>
+
+<section class="section">
+  <h3>Most important thing I learned</h3>
+  <p>I finally felt how “frequency” is not abstract: edges pop because they’re literally high-frequency changes. Building stacks by hand made the “smoother seam per band” idea click, and I saw why the Gaussianized mask is essential for multires blending.</p>
+</section>
+
+<footer class="site-footer">
+  <p>© 2025 — CS180/280A Project 2.</p>
+</footer>
+
+</main>
+</body>
+</html>
