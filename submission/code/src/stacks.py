@@ -120,6 +120,12 @@ def mask_diag(image_height, image_width, ramp=80):  # diagonal mask TL→BR
     
     return mask
 
+def mask_horiz(image_height, image_width, ramp=100):  # horizontal mask: 1 at top and 0 at bottom
+    # I transpose a vertical (left→right) cosine mask to become top→bottom, and pass ramp through
+    mask = make_soft_vertical_mask(image_width, image_height, ramp=ramp).T 
+    return mask
+
+
 
 def multiband_blend(image1, image2, mask, levels=5, size=9, sigma=2.0):
 
@@ -140,7 +146,7 @@ def multiband_blend(image1, image2, mask, levels=5, size=9, sigma=2.0):
     else:
         mask_rescaled = mask
 
-        
+    
     mask_rescaled, _ = image_matcher(mask_rescaled, image1rescaled) # make mask same size as image it is masking
         
     
