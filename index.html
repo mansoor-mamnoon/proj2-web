@@ -1507,6 +1507,17 @@ to get back the sharpness by adding highs. Mid \(\alpha\) looks most natural; ve
       contrast make the seam obvious unless blending is done correctly.
     </p>
 
+    <!-- Explanation of cosine mask -->
+    <p class="why mt-12">
+      What is a cosine mask? A cosine mask is a smooth weighting function that transitions gradually from 1 to 0 using
+      the cosine curve instead of a hard step. In practice, I pick a ramp width (in pixels) and compute values
+      \[
+        M(x) = \tfrac{1}{2}\big(1 + \cos(\theta)\big), \quad \theta \in [0, \pi],
+      \]
+      across that ramp. The result is 1 on one side, 0 on the other, and a gentle fade in between. This avoids visible
+      seams and makes the blended regions look natural.
+    </p>
+
     <!-- Originals -->
     <div class="duo mt-12">
       <figure>
@@ -1597,6 +1608,52 @@ to get back the sharpness by adding highs. Mid \(\alpha\) looks most natural; ve
     </div>
   </div>
 
+  <!-- ================= Sunset → City Night (Horizontal) ================= -->
+  <div class="card mt-16">
+    <span class="badge">Sunset → City Night (Horizontal mask)</span>
+    <p class="why">
+      Why this pair: A horizontal seam fits scenes with a clear horizon. The soft cosine mask keeps the sunset sky at the top,
+      while the city lights take over toward the bottom, minimizing visible edges across buildings.
+    </p>
+
+    <!-- Originals -->
+    <div class="duo mt-12">
+      <figure>
+        <img src="assets/data/sunset.png" alt="Sunset (original)">
+        <figcaption class="caption">Before: Sunset (original input, top image).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/data/city_night.png" alt="City skyline at night (original)">
+        <figcaption class="caption">Before: City skyline at night (original input, bottom image).</figcaption>
+      </figure>
+    </div>
+
+    <!-- Masked pieces -->
+    <div class="tri mt-12">
+      <figure>
+        <img src="assets/q2_4/sunset_city_horizontal/mask.png" alt="Horizontal mask">
+        <figcaption class="caption">Horizontal cosine mask (top→bottom). Params: levels=7, size=31, σ=5.0, ramp=120.</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_4/sunset_city_horizontal/masked_A.png" alt="Sunset × mask">
+        <figcaption class="caption">Masked A (Sunset × mask).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_4/sunset_city_horizontal/masked_B.png" alt="City night × (1−mask)">
+        <figcaption class="caption">Masked B (City night × (1−mask)).</figcaption>
+      </figure>
+    </div>
+
+    <!-- Final -->
+    <div class="full">
+      <figure>
+        <img src="assets/q2_4/sunset_city_horizontal/result.png" alt="Sunset → City night blended result">
+        <figcaption class="caption">Final horizontal multiresolution blend.</figcaption>
+      </figure>
+    </div>
+  </div>
+
+
   <!-- ================= Before/After portraits ================= -->
   <div class="card mt-16">
     <span class="badge">Before/After portraits</span>
@@ -1605,6 +1662,7 @@ to get back the sharpness by adding highs. Mid \(\alpha\) looks most natural; ve
       ago and the other is a recent college portrait. They were aligned using my eye positions so the face
       parts line up. A vertical cosine mask lets the two halves merge smoothly across the face.
     </p>
+
 
     <!-- Originals -->
     <div class="duo mt-12">
