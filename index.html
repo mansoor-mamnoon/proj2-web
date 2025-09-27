@@ -62,6 +62,45 @@
       border-radius: 6px;
     }
   </style>
+
+<style>
+  /* Force solid colors and prevent washout when exporting to PDF */
+  @media print {
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+  
+    .card,
+    .badge,
+    .caption,
+    .glossary,
+    .glossary-term {
+      opacity: 1 !important;
+      mix-blend-mode: normal !important;
+      filter: none !important;
+  
+      /* Background and text colors forced */
+      background-color: #0f172a !important;   /* dark navy */
+      color: #ffffff !important;             /* white text */
+      -webkit-text-fill-color: #ffffff !important;
+    }
+  
+    /* Glossary highlight (adjust color if you use another) */
+    .glossary-term {
+      background-color: #ffd54f !important;  /* yellow highlight */
+      color: #000 !important;                /* black text */
+      -webkit-text-fill-color: #000 !important;
+    }
+  
+    /* Ensure boxes stay visible */
+    .card, .glossary {
+      border: 1px solid #000 !important;
+      box-shadow: none !important;
+    }
+  }
+  </style>
+  
 </head>
 <body>
     <header class="hero">
