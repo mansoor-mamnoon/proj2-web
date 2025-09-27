@@ -802,7 +802,6 @@ to get back the sharpness by adding highs. Mid \(\alpha\) looks most natural; ve
 
   <!-- =======================
      Part 2.2 — Hybrid Images
-     Drop this right after your Part 2.1 section
 ======================= -->
 
 <!-- Force-opaque just for Section 2.2 (text, captions, and MathJax) -->
@@ -850,7 +849,6 @@ to get back the sharpness by adding highs. Mid \(\alpha\) looks most natural; ve
         </p>
       </div>
       <figure>
-        <!-- use a clear hybrid as teaser; Derek+Nutmeg works well -->
         <img src="assets/q2_2/derek_nutmeg/hybrid.png" alt="Hybrid teaser (Derek + Nutmeg)">
         <figcaption class="caption">Hybrid image changes with viewing distance. (low: size=21, σ=4; high: size=13, σ=3)</figcaption>
       </figure>
@@ -870,7 +868,7 @@ to get back the sharpness by adding highs. Mid \(\alpha\) looks most natural; ve
     </p>
   </div>
 
-  <!-- Full process example with FFTs -->
+  <!-- Full process example with FFTs (PERSON_OLDMAN SET) -->
   <div class="card mt-16">
     <span class="badge">full process: person + old man (with FFTs)</span>
 
@@ -891,29 +889,58 @@ to get back the sharpness by adding highs. Mid \(\alpha\) looks most natural; ve
     </div>
 
     <h3 class="mt-16">Frequency analysis (log magnitude FFT)</h3>
+
+    <!-- Originals + Hybrid FFTs (3-up as before) -->
     <div class="grid grid-3 mt-12">
       <figure>
         <img src="assets/q2_2/person_oldman/a_fft.png" alt="FFT of left">
-        <figcaption class="caption">FFT of left (original). (pre-hybrid)</figcaption>
+        <figcaption class="caption">FFT of left (original). Low-frequency content concentrated at the center; reveals the base shape energy.</figcaption>
       </figure>
       <figure>
         <img src="assets/q2_2/person_oldman/b_fft.png" alt="FFT of right">
-        <figcaption class="caption">FFT of right (original). (pre-hybrid)</figcaption>
+        <figcaption class="caption">FFT of right (original). Shows this face’s native detail spectrum before filtering.</figcaption>
       </figure>
       <figure>
         <img src="assets/q2_2/person_oldman/hybrid_fft.png" alt="FFT of hybrid">
-        <figcaption class="caption">FFT of hybrid. (low 21/4 + high 13/2)</figcaption>
+        <figcaption class="caption">FFT of hybrid. Mixes a bright center (low-pass) with energized outskirts (high-pass).</figcaption>
       </figure>
     </div>
+
+    <!-- NEW: Filtered-piece FFTs (low & high) -->
+    <div class="grid grid-3 mt-12">
+      <figure>
+        <img src="assets/q2_2/person_oldman/a_low_fft.png" alt="FFT of low-pass">
+        <figcaption class="caption">FFT of low-pass. Energy collapses toward the center—high frequencies are suppressed.</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_2/person_oldman/b_high_fft.png" alt="FFT of high-pass">
+        <figcaption class="caption">FFT of high-pass. Center (DC/slow variations) is attenuated; energy spreads outward (edges/details).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_2/person_oldman/hybrid.png" alt="Hybrid (visual)">
+        <figcaption class="caption">Visual hybrid again (reference). Perceptually: far = left’s coarse structure; near = right’s fine details.</figcaption>
+      </figure>
+    </div>
+
+    <div class="callout mt-12"
+     style="opacity:1 !important; filter:none !important; mix-blend-mode:normal !important; text-shadow:none !important; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important;">
+  <h4 class="mt-0">What each Fourier means</h4>
+  <ul>
+    <li><strong>Originals (a_fft, b_fft):</strong> The overall frequency makeup of each input; a bright center signals strong low-frequency structure.</li>
+    <li><strong>Low-pass (low_fft):</strong> Spectrum contracts toward the origin: only smooth, large-scale variations remain.</li>
+    <li><strong>High-pass (high_fft):</strong> Spectrum dims at the center and brightens toward the periphery, emphasizing edges and fine textures.</li>
+    <li><strong>Hybrid (hybrid_fft):</strong> Superposition of both behaviors: central energy from the low image plus peripheral energy from the high image: matching the “far vs. near” perceptual flip.</li>
+  </ul>
+</div>
 
     <h3 class="mt-16">Filtered pieces</h3>
     <div class="grid grid-3 mt-12">
       <figure>
-        <img src="assets/q2_2/person_oldman/low.png" alt="Low-pass of left">
+        <img src="assets/q2_2/person_oldman/a_low_fft.png" alt="Low-pass of left">
         <figcaption class="caption">Low-pass of left. (size=21, σ=4)</figcaption>
       </figure>
       <figure>
-        <img src="assets/q2_2/person_oldman/high.png" alt="High-pass of right">
+        <img src="assets/q2_2/person_oldman/b_high_fft.png" alt="High-pass of right">
         <figcaption class="caption">High-pass of right. (size=13, σ=2)</figcaption>
       </figure>
       <figure>
@@ -925,10 +952,9 @@ to get back the sharpness by adding highs. Mid \(\alpha\) looks most natural; ve
     <div class="explain mt-12">
       <h4>Cutoff choices</h4>
       <p>
-        I set the low-pass size/sigma to balance shape and detail in the base face,
-        and set the high-pass size/sigma to keep crisp features without making halos.
-        The FFTs show energy concentrated at the center for the lows and spread out for the highs,
-        and the hybrid mixes both patterns.
+        I set the low-pass size/sigma to keep the base face’s shape legible at distance, and the high-pass size/sigma
+        to retain crisp details up close without halos. The FFTs confirm this split: the low-pass piles energy at the
+        center while the high-pass pushes it outward; the hybrid combines both patterns.
       </p>
     </div>
   </div>
