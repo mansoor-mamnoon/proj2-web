@@ -299,12 +299,65 @@
                 for timing i run each method multiple times and compare medians. 2-loop beats 4-loop by a lot (scipy’s compiled code is still fastest).
               </p>
             </div>
+
+           <!-- === Measured runtimes (s) for Part 1.1 === -->
+<div class="card mt-16">
+  <span class="badge">measured runtimes (s)</span>
+  <div class="grid-balanced mt-12">
+    <div>
+      <table class="table">
+        <tr><th>4-loop (numpy)</th><td>8.742&nbsp;s</td></tr>
+        <tr><th>2-loop (numpy)</th><td>1.389&nbsp;s</td></tr>
+        <tr><th>SciPy convolve2d</th><td>0.055&nbsp;s</td></tr>
+      </table>
+      <p class="caption mt-6">
+        Median over 5 runs on my machine. Lower is better.
+      </p>
+    </div>
+    <div class="callout">
+      <strong>Runtime takeaway:</strong> the 2-loop version is ~6× faster than the 4-loop,
+      while SciPy is another ~25× faster than the 2-loop (≈160× faster than the 4-loop),
+      all with identical kernel flipping and boundary handling.
+    </div>
+  </div>
+</div>
+
+
             <div class="callout">
               <strong>takeaway:</strong> writing both versions made convolution “click.” moving from 4 loops to a 2-loop window dot-product gives a big speedup with the
               same output. matching kernel flip and boundary is key when comparing to scipy.
             </div>
           </div>
         </div>
+
+        <!-- === Rubric mapping for Part 1.1 === -->
+<div class="card mt-16">
+  <span class="badge">Rubric checklist — Part 1.1</span>
+  <div class="grid-balanced mt-12">
+    <div>
+      <h3 class="mt-0">Provide correct implementations of convolution, with numpy only.</h3>
+      <ul>
+        <li>I wrote <code>conv_4_loops</code> and <code>conv_2_loops</code> that use only numpy arrays and basic ops.</li>
+        <li>Both versions implement true convolution with a flipped kernel and produce the same outputs on the interior.</li>
+      </ul>
+
+      <h3>Compare with <code>scipy.signal.convolve2d</code>, and comment on runtime and boundaries.</h3>
+      <ul>
+        <li><strong>Comparison:</strong> I matched <code>mode="same"</code>, <code>boundary="fill"</code>, <code>fillvalue=0</code> and flipped the kernel for SciPy so both are doing convolution not correlation. I reported max-abs differences above.</li>
+        <li><strong>Runtime:</strong> 2-loop &gt;&gt; 4-loop in speed; SciPy is still fastest due to compiled code.</li>
+        <li><strong>Boundaries:</strong> I used zero padding. I explain the effect near borders and why mismatched flips/padding cause larger diffs.</li>
+      </ul>
+    </div>
+    <div class="callout">
+      <strong>Motivation:</strong> Writing both versions made the stencil math concrete and shows how vectorizing the inner work gives big speedups without changing outputs. Matching padding and kernel orientation is required for a fair comparison to a library routine.
+    </div>
+  </div>
+</div>
+
+
+
+
+
       </section>
       
       
@@ -445,6 +498,29 @@
       </div>
     </div>
   </div>
+
+
+  <!-- === Rubric mapping for Part 1.2 === -->
+<div class="card mt-16">
+  <span class="badge">Rubric checklist — Part 1.2</span>
+  <div class="grid-balanced mt-12">
+    <div>
+      <h3 class="mt-0">Show partial derivatives in x and y.</h3>
+      <p>I displayed the signed <code>Dx</code> and <code>Dy</code> responses for the cameraman (see “Signed partial derivatives”).</p>
+
+      <h3>Show the gradient magnitude image.</h3>
+      <p>I combined them as \( \| \nabla I \| = \sqrt{g_x^2 + g_y^2} \) and showed it in “Gradient magnitude”.</p>
+
+      <h3>Show a binarized edge image and justify the threshold.</h3>
+      <p>I swept \( t \in \{0.10, 0.15, 0.20, 0.25, 0.30, 0.35\} \) and chose <strong>t = 0.20</strong> as the best tradeoff between suppressing noise and keeping real edges. The visual reasoning is stated next to the chosen result.</p>
+    </div>
+    <div class="callout">
+      <strong>Motivation:</strong> Finite differences approximate local slope. Magnitude unifies directions so oblique edges stand out. Thresholding converts a soft strength map into a discrete contour map, which is often needed for downstream tasks.
+    </div>
+  </div>
+</div>
+
+
 </section>
 
 
@@ -616,7 +692,37 @@
         </p>
       </div>
     </div>
-  </div> </section>
+  </div>
+
+
+  <!-- === Rubric mapping for Part 1.3 === -->
+<div class="card mt-16">
+  <span class="badge">Rubric checklist — Part 1.3</span>
+  <div class="grid-balanced mt-12">
+    <div>
+      <h3 class="mt-0">Construct Gaussian filters using <code>cv2.getGaussianKernel</code>, build DoG filters, and visualize them.</h3>
+      <ul>
+        <li>I created 1D kernels with <code>cv2.getGaussianKernel</code>, formed a 2D Gaussian by outer product, and showed the kernel image.</li>
+        <li>I built DoG filters \(k_x = G * D_x\), \(k_y = G * D_y\) and visualized them.</li>
+      </ul>
+
+      <h3>Apply Gaussian smoothing and DoG to the cameraman and compare to finite differences.</h3>
+      <ul>
+        <li>I ran “blur → Dx/Dy → magnitude” and showed results and threshold sweeps.</li>
+        <li>I ran one-pass DoG and showed that interior pixels match blur→diff up to float error. I explained boundary effects.</li>
+      </ul>
+
+    </div>
+    <div class="callout">
+      <strong>Motivation:</strong> Smoothing before differencing suppresses noise that finite differences amplify. DoG fuses these steps into one linear filter, giving the same interior result with fewer passes.
+    </div>
+  </div>
+</div>
+
+
+
+
+</section>
 
 
   
@@ -790,10 +896,31 @@
 
   <div class="callout mt-16"
   style="opacity:1 !important; filter:none !important; mix-blend-mode:normal !important; text-shadow:none !important; color:#0f172a !important; -webkit-text-fill-color:#0f172a !important;">
-<strong>Summary:</strong> I implemented unsharp masking and explained it in terms of blur and high frequencies.
+I implemented unsharp masking and explained it in terms of blur and high frequencies.
 I showed low, high, and sharpened versions for the Taj image and for a second image (cityscape).
 I also varied \(\alpha\) to show how the amount changes the look. In the evaluation, I blurred a sharp photo and tried
 to get back the sharpness by adding highs. Mid \(\alpha\) looks most natural; very large \(\alpha\) brings artifacts.
+</div>
+
+
+<!-- === Rubric mapping for Part 2.1 === -->
+<div class="card mt-16">
+  <span class="badge">Rubric checklist — Part 2.1</span>
+  <div class="grid-balanced mt-12">
+    <div>
+      <h3 class="mt-0">Implement the unsharp mask filter and explain how it works.</h3>
+      <p>I split the image into <em>low</em> (= blur by Gaussian) and <em>high</em> (= original − low). Sharpen = original + α·high. I also show the single-kernel form \(K = (1+\alpha)\delta - \alpha G\).</p>
+
+      <h3>Show blurred, high-frequency, and sharpened versions of Taj + another image.</h3>
+      <p>These are included above for Taj and Cityscape: low, high (signed view), and multiple α values.</p>
+
+      <h3>Demonstrate how varying the sharpening amount changes the result.</h3>
+      <p>I varied α over a wide range and described the visual effect and artifacts (halos/ringing) at high α.</p>
+    </div>
+    <div class="callout">
+      <strong>Motivation:</strong> Many images look soft because their high bands are weak. Unsharp masking pushes those bands up selectively, improving perceived detail while keeping large-scale tone intact.
+    </div>
+  </div>
 </div>
 
 </section>
@@ -1023,6 +1150,28 @@ to get back the sharpness by adding highs. Mid \(\alpha\) looks most natural; ve
     Good alignment and careful cutoffs matter. If the high cutoff is too small, the hybrid looks muddy.
     If it is too large, halos and ghosting appear.
   </div>
+
+
+  <!-- === Rubric mapping for Part 2.2 === -->
+<div class="card mt-16">
+  <span class="badge">Rubric checklist — Part 2.2</span>
+  <div class="grid-balanced mt-12">
+    <div>
+      <h3 class="mt-0">Create three hybrid images (Derek + Nutmeg plus two of my own).</h3>
+      <p>I included Derek+Nutmeg and two custom pairs. Inputs are aligned before filtering.</p>
+
+      <h3>For one hybrid, show the full process and justify cutoff choices.</h3>
+      <ul>
+        <li>I presented originals, alignment, low/high splits, final sum, and log-magnitude FFTs for the full walk-through pair.</li>
+        <li>I explained cutoff selection in terms of keeping coarse structure for distance and crisp details for near-view without halos.</li>
+      </ul>
+    </div>
+    <div class="callout">
+      <strong>Motivation:</strong> The hybrid trick leverages how our vision filters with distance. The Fourier plots make the design visible: center energy = low; outer energy = high; the hybrid is a deliberate sum of those.
+    </div>
+  </div>
+</div>
+
 </section>
 
 
@@ -1265,6 +1414,27 @@ to get back the sharpness by adding highs. Mid \(\alpha\) looks most natural; ve
       </div>
     </div>
   </div>
+
+  <!-- === Rubric mapping for Part 2.3 === -->
+<div class="card mt-16">
+  <span class="badge">Rubric checklist — Part 2.3</span>
+  <div class="grid-balanced mt-12">
+    <div>
+      <h3 class="mt-0">Visualize the process: Gaussian and Laplacian stacks for Orange + Apple.</h3>
+      <p>I showed Gaussian and Laplacian stacks for each image at multiple levels with fixed image size per level (stacks, not pyramids).</p>
+
+      <h3>Recreate outcomes of Szeliski Figure 3.42 (a)–(l).</h3>
+      <p>I reproduced the 4×3 grid: per-level masked bands for both images, per-level sums, masked originals, and the final reconstruction, all using the same mask-per-level equation stated on the page.</p>
+    </div>
+    <div class="callout">
+      <strong>Motivation:</strong> Stacks separate image information by scale. Blending at every scale with a blurred mask gives a transition that is sharp for fine detail and wide for coarse structure, which hides the seam.
+    </div>
+  </div>
+</div>
+
+
+
+
 </section>
 
 
@@ -1480,6 +1650,28 @@ to get back the sharpness by adding highs. Mid \(\alpha\) looks most natural; ve
       </figure>
     </div>
   </div>
+
+  <!-- === Rubric mapping for Part 2.4 === -->
+<div class="card mt-16">
+  <span class="badge">Rubric checklist — Part 2.4</span>
+  <div class="grid-balanced mt-12">
+    <div>
+      <h3 class="mt-0">Blend two images with a vertical or horizontal seam (Oraple).</h3>
+      <p>I used a vertical cosine mask and Gaussian/Laplacian stacks for Apple and Orange to create the classic oraple, then reconstructed by summing blended bands.</p>
+
+      <h3>Include 2 additional custom blends; one uses an irregular mask.</h3>
+      <p>I included two custom blends and used a non-straight, soft mask in one of them to show irregular transitions.</p>
+
+      <h3>Illustrate the process with Laplacian outputs and masked inputs.</h3>
+      <p>I showed masked inputs and per-level Laplacian outputs (like Fig. 10) for a favorite result.</p>
+
+    </div>
+    <div class="callout">
+      <strong>Motivation:</strong> Multiresolution blending is a scale-aware cross-fade. Using the mask’s Gaussian stack ensures small details blend narrowly and large tones blend broadly.
+    </div>
+  </div>
+</div>
+
 </section>
 
 
