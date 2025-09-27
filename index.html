@@ -995,7 +995,7 @@ to get back the sharpness by adding highs. Mid \(\alpha\) looks most natural; ve
   #part2-3 .mjx-chtml,
   #part2-3 .mjx-math,
   #part2-3 [class^="mjx-"],
-  #part2-3 [class*=" mjx-"]{
+  #part2-3 [class*=" mjx-"] {
     color: currentColor !important;
     -webkit-text-fill-color: currentColor !important;
     opacity: 1 !important;
@@ -1006,7 +1006,7 @@ to get back the sharpness by adding highs. Mid \(\alpha\) looks most natural; ve
 </style>
 
 <section id="part2-3" class="section">
-  <h2 style="color:#000000 !important; -webkit-text-fill-color:#000000 !important; opacity:1 !important; filter:none !important; mix-blend-mode:normal !important; text-shadow:none !important;">
+  <h2 style="color:#000000 !important; -webkit-text-fill-color:#000000 !important; opacity:1 !important;">
     Part 2.3: Gaussian and Laplacian Stacks
   </h2>
 
@@ -1022,23 +1022,21 @@ to get back the sharpness by adding highs. Mid \(\alpha\) looks most natural; ve
           plus the final low-pass residual at the top level.
         </p>
         <p class="mb-0">
-          I built both stacks <strong>from scratch</strong> (no <code>cv2.pyrDown</code> or
-          <code>skimage</code> pyramids). For this section I used
-          <strong>7 levels</strong> with a <strong>31×31</strong> Gaussian and
+          For this section I used <strong>7 levels</strong> with a <strong>31×31</strong> Gaussian and
           <strong>σ = 5.0</strong>. Apple and Orange are aligned first so stack operations act on
           corresponding pixels.
         </p>
       </div>
       <figure>
         <img src="assets/q2_3/fig342.png" alt="Figure 3.42 reference (layout)">
-        <figcaption class="caption">Target layout for the “Oraple” style visualization. (levels=7, size=31, σ=5.0)</figcaption>
+        <figcaption class="caption">Target layout for the “Oraple” visualization. (levels=7, size=31, σ=5.0)</figcaption>
       </figure>
     </div>
   </div>
 
   <!-- Stacks for Apple and Orange -->
   <div class="card mt-16">
-    <span class="badge">Gaussian &amp; Laplacian stacks (no downsampling)</span>
+    <span class="badge">Gaussian &amp; Laplacian stacks</span>
     <p class="mt-12">
       Below are tiled views of the stacks for each image. Each tile row is a level in the stack.
       The Laplacian views are normalized for display to reveal their bands clearly.
@@ -1063,71 +1061,84 @@ to get back the sharpness by adding highs. Mid \(\alpha\) looks most natural; ve
         <figcaption class="caption">Orange — Laplacian stack. (levels=7)</figcaption>
       </figure>
     </div>
-    <div class="explain mt-12">
-      <h4>Why stacks vs. pyramids?</h4>
-      <p class="mb-0">
-        In a pyramid you downsample, so shapes shrink each level. In a stack you never downsample,
-        which makes it easy to combine levels across images pixel-wise and to visualize all bands
-        in a single grid without resizing.
-      </p>
-    </div>
   </div>
 
-  <!-- Recreating Szeliski Fig. 3.42 a–l -->
+  <!-- Recreating Szeliski Fig. 3.42 -->
   <div class="card mt-16">
     <span class="badge">Recreating Szeliski Fig. 3.42 (a)–(l)</span>
     <p class="mt-12">
-      I reproduced the four-row grid: three rows show Laplacian-band compositing at selected levels,
-      and the last row shows masked originals and the final blend (“Oraple”). The grid below matches
-      cells (a) through (l) left-to-right, top-to-bottom.
+      First, here is the full 4×3 grid of results (a–l). Each row corresponds to one stage:
+      Laplacian bands at levels 0, 2, 4 and the final composite row.
     </p>
     <figure class="mt-12">
       <img src="assets/q2_3/szeliski_342_grid_color.png" alt="Grid a–l (color)">
-      <figcaption class="caption">My Fig. 3.42 grid (color). (levels=7, size=31, σ=5.0)</figcaption>
+      <figcaption class="caption">Full grid (a–l). (levels=7, size=31, σ=5.0)</figcaption>
     </figure>
 
+    <p class="mt-16">Below are each of the twelve cells separately with captions explaining what they represent.</p>
+
+    <!-- Row 1 -->
     <div class="grid grid-3 mt-12">
       <figure>
         <img src="assets/q2_3/a_color.png" alt="Cell a">
-        <figcaption class="caption">a: Apple band × mask (selected level)</figcaption>
+        <figcaption class="caption">a: Apple band × mask (level 0). Parameters: levels=7, size=31, σ=5.0</figcaption>
       </figure>
       <figure>
         <img src="assets/q2_3/b_color.png" alt="Cell b">
-        <figcaption class="caption">b: Orange band × (1 − mask) (selected level)</figcaption>
+        <figcaption class="caption">b: Orange band × (1 − mask) (level 0). Same parameters.</figcaption>
       </figure>
       <figure>
         <img src="assets/q2_3/c_color.png" alt="Cell c">
-        <figcaption class="caption">c: Sum of a and b (selected level)</figcaption>
+        <figcaption class="caption">c: Sum of a and b (level 0 composite).</figcaption>
       </figure>
     </div>
 
+    <!-- Row 2 -->
+    <div class="grid grid-3 mt-12">
+      <figure>
+        <img src="assets/q2_3/d_color.png" alt="Cell d">
+        <figcaption class="caption">d: Apple band × mask (level 2).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_3/e_color.png" alt="Cell e">
+        <figcaption class="caption">e: Orange band × (1 − mask) (level 2).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_3/f_color.png" alt="Cell f">
+        <figcaption class="caption">f: Sum of d and e (level 2 composite).</figcaption>
+      </figure>
+    </div>
+
+    <!-- Row 3 -->
+    <div class="grid grid-3 mt-12">
+      <figure>
+        <img src="assets/q2_3/g_color.png" alt="Cell g">
+        <figcaption class="caption">g: Apple band × mask (level 4).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_3/h_color.png" alt="Cell h">
+        <figcaption class="caption">h: Orange band × (1 − mask) (level 4).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_3/i_color.png" alt="Cell i">
+        <figcaption class="caption">i: Sum of g and h (level 4 composite).</figcaption>
+      </figure>
+    </div>
+
+    <!-- Row 4 -->
     <div class="grid grid-3 mt-12">
       <figure>
         <img src="assets/q2_3/j_color.png" alt="Cell j">
-        <figcaption class="caption">j: Apple × mask (original scale)</figcaption>
+        <figcaption class="caption">j: Apple × mask (original scale).</figcaption>
       </figure>
       <figure>
         <img src="assets/q2_3/k_color.png" alt="Cell k">
-        <figcaption class="caption">k: Orange × (1 − mask)</figcaption>
+        <figcaption class="caption">k: Orange × (1 − mask) (original scale).</figcaption>
       </figure>
       <figure>
         <img src="assets/q2_3/l_color.png" alt="Cell l">
-        <figcaption class="caption">l: Final multiband blend (Oraple). (levels=7)</figcaption>
+        <figcaption class="caption">l: Final multiband blend (Oraple).</figcaption>
       </figure>
-    </div>
-
-    <div class="explain mt-12">
-      <h4>How the grid is built</h4>
-      <ul>
-        <li>Create Gaussian stacks \(G_A, G_B\) for Apple and Orange; Laplacian stacks \(L_A, L_B\) from their differences.</li>
-        <li>Build a soft vertical mask \(M\) and its Gaussian stack \(G_M\) to avoid seams.</li>
-        <li>For selected levels \(i\), blend Laplacian bands: \(L_{\text{out}}[i] = G_M[i]\cdot L_A[i] + (1 - G_M[i])\cdot L_B[i]\).</li>
-        <li>Sum all \(L_{\text{out}}\) levels and clip to \([0,1]\) to get the final image.</li>
-      </ul>
-      <p class="text-muted mb-0">
-        I saved each cell (a–l) individually (<code>a_color.png</code> … <code>l_color.png</code>) and the combined grids
-        (<code>szeliski_342_grid.png</code>, <code>szeliski_342_grid_color.png</code>).
-      </p>
     </div>
   </div>
 
@@ -1137,16 +1148,17 @@ to get back the sharpness by adding highs. Mid \(\alpha\) looks most natural; ve
     <div class="grid-balanced mt-12">
       <figure>
         <img src="assets/q2_3/oraple_result.png" alt="Oraple final result">
-        <figcaption class="caption">Multiband blend result. (levels=7, size=31, σ=5.0; vertical cosine mask)</figcaption>
+        <figcaption class="caption">Final Oraple blend. (levels=7, size=31, σ=5.0; vertical cosine mask)</figcaption>
       </figure>
       <div class="callout">
         <strong>Notes:</strong>
-        The mask is a cosine ramp around the vertical seam. Its own Gaussian stack makes transitions
+        The mask is a cosine ramp around the vertical seam. Its Gaussian stack makes transitions
         smoother at coarse levels, which is why the boundary is seamless across scales.
       </div>
     </div>
   </div>
 </section>
+
 
 <!-- =======================
      Part 2.4 — Multiresolution Blending
