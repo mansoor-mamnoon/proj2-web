@@ -13,6 +13,55 @@
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
+  <!-- === Added: styles to keep only the glossary titles/first lines opaque === -->
+  <style>
+    /* Scope to glossary only */
+    #param-glossary, #param-glossary * {
+      opacity: 1 !important;
+      filter: none !important;
+      mix-blend-mode: normal !important;
+      text-shadow: none !important;
+    }
+    /* Make the summary title & any first lead paragraph dark ink only inside glossary */
+    #param-glossary summary,
+    #param-glossary .lead {
+      color: #0f172a !important;
+      -webkit-text-fill-color: #0f172a !important;
+    }
+    #param-glossary {
+      border: 1px solid rgba(15,23,42,.15);
+      border-radius: 12px;
+      padding: 10px 14px;
+      background: rgba(255,255,255,.9);
+      margin: 16px auto;
+      max-width: 1100px;
+    }
+    #param-glossary summary {
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 1.05rem;
+      list-style: none;
+    }
+    #param-glossary summary::-webkit-details-marker { display: none; }
+    #param-glossary .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px 16px;
+      margin-top: 10px;
+    }
+    #param-glossary .cardish {
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #0f172a;
+    }
+    #param-glossary code {
+      background: #e2e8f0;
+      padding: 0 4px;
+      border-radius: 6px;
+    }
+  </style>
 </head>
 <body>
     <header class="hero">
@@ -28,18 +77,43 @@
           </p>
       
           <nav class="nav" aria-label="Project sections">
-            <a href="#part1" style="opacity:1 !important; color:#0f172a !important; filter:none !important; -webkit-text-fill-color:#0f172a !important;">Part 1 — Fun with Filters</a>
-            <a href="#p11" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">1.1 Convolutions from Scratch</a>
-            <a href="#p12" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">1.2 Finite Difference Operator</a>
-            <a href="#p13" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">1.3 Derivative of Gaussian (DoG)</a>
+            <a href="#part1-1" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">
+              1.1 Convolutions from Scratch
+            </a>
+            <a href="#p12" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">
+              1.2 Finite Difference Operator
+            </a>
+            <a href="#p13" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">
+              1.3 Derivative of Gaussian (DoG)
+            </a>
             <a href="#part2" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">Part 2 — Fun with Frequencies</a>
-            <a href="#p21" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">2.1 Image “Sharpening”</a>
-            <a href="#p22" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">2.2 Hybrid Images</a>
-            <a href="#p23" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">2.3 Gauss &amp; Laplace Stacks</a>
+            <a href="#part2-1" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">2.1 Image “Sharpening”</a>
+            <a href="#part2-2" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">2.2 Hybrid Images</a>
+            <a href="#part2-3" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">2.3 Gauss &amp; Laplace Stacks</a>
             <a href="#p24" style="opacity:1 !important; color:#0f172a !important; filter:none !important;">2.4 Multires Blending (Oraple + Irregular)</a>
           </nav>
         </div>
       </header>
+
+      <!-- === Added: Parameter Glossary (dropdown) right under the header === -->
+      <details id="param-glossary" open>
+        <summary>Parameter Glossary — what each symbol/field means</summary>
+        <p class="lead" style="margin:6px 0 10px 0;">These are the exact parameters used across Parts 1–2.</p>
+        <div class="grid">
+          <div class="cardish"><strong><code>size</code></strong>: kernel width/height in pixels (e.g., 9 → 9×9).</div>
+          <div class="cardish"><strong><code>σ</code> (sigma)</strong>: Gaussian standard deviation; larger σ → stronger blur / lower cutoff.</div>
+          <div class="cardish"><strong><code>α</code> (alpha)</strong>: unsharp “amount”; scales the high frequencies added back in 2.1.</div>
+          <div class="cardish"><strong><code>low_size</code>, <code>low_sigma</code></strong>: Gaussian used to create the low-pass image in hybrids (2.2).</div>
+          <div class="cardish"><strong><code>high_size</code>, <code>high_sigma</code></strong>: Gaussian used to blur before subtracting to make the high-pass in hybrids (2.2).</div>
+          <div class="cardish"><strong><code>levels</code></strong>: number of stack levels in Gaussian/Laplacian stacks for blending (2.3–2.4).</div>
+          <div class="cardish"><strong><code>mask</code></strong>: per-pixel weights in [0,1] used to mix images; blurred across levels to hide seams.</div>
+          <div class="cardish"><strong><code>ramp</code></strong>: width of the cosine transition in soft masks (when applicable).</div>
+          <div class="cardish"><strong><code>mode="same"</code></strong>: convolution mode that keeps output size equal to input (1.1–1.3).</div>
+          <div class="cardish"><strong><code>boundary="fill"</code></strong>: zero padding outside image bounds during convolution (1.1–1.3, 2.1).</div>
+          <div class="cardish"><strong><code>D_x=[1,0,-1]</code>, <code>D_y=D_x^T</code></strong>: finite-difference derivative filters (1.2).</div>
+          <div class="cardish"><strong><code>t</code></strong>: threshold on normalized gradient magnitude for binary edges (1.2–1.3).</div>
+        </div>
+      </details>
       
       <main>
         <section id="part1-1" class="section">
@@ -47,7 +121,7 @@
             Part 1.1: Convolutions from Scratch
           </h2>
           <p class="lead" style="opacity:1 !important; color:#0f172a !important; filter:none !important; -webkit-text-fill-color:#0f172a !important;">
-            I implemented 2D convolution two ways with numpy (4-loop and 2-loop). i use zero padding so output size matches input.
+            I implemented 2D convolution two ways with numpy (4-loop and 2-loop). I use zero padding so output size matches input.
           </p>
         <!-- input -->
         <div class="card">
@@ -55,7 +129,7 @@
           <div class="grid-balanced mt-12">
             <figure>
               <img class="img-clamp" src="assets/q1_1/selfie.jpg" alt="selfie (grayscale)">
-              <figcaption class="caption">selfie used for box / Dx / Dy tests.</figcaption>
+              <figcaption class="caption">selfie used for box / Dx / Dy tests. (box size=9; Dx=[1,0,-1]; Dy=Dxᵀ)</figcaption>
             </figure>
             <div>
               <h3 class="mt-0">what i implement</h3>
@@ -92,7 +166,7 @@
           <div class="grid-balanced">
             <div>
               <span class="badge">code (4 loops + padding)</span>
-      <pre class="mt-6"><code>def conv_4_loops(img, k):  # zero-pad; textbook convolution
+      <pre class="mt-6"><code>def conv_4_loops(img, k):  # zero-pad;
           hi, wi = img.shape
           hk, wk = k.shape
           ph, pw = hk//2, wk//2  # zero padding
@@ -117,7 +191,7 @@
             </div>
             <figure>
               <img class="img-clamp" src="assets/q1_1/selfie_box9_4loops.png" alt="4-loop box result">
-              <figcaption class="caption">4-loop 9×9 box on selfie.</figcaption>
+              <figcaption class="caption">4-loop 9×9 box on selfie. (size=9, mode="same", boundary="fill")</figcaption>
               <table class="table mt-12">
                 <tr><th>diff vs SciPy</th><td>3.57627869e-07 (max abs)</td></tr>
                 <tr><th>runtime</th><td>slowest (baseline)</td></tr>
@@ -155,7 +229,7 @@
             </div>
             <figure>
               <img class="img-clamp" src="assets/q1_1/selfie_box9_2loops.png" alt="2-loop box result">
-              <figcaption class="caption">2-loop 9×9 box on selfie.</figcaption>
+              <figcaption class="caption">2-loop 9×9 box on selfie. (size=9, mode="same", boundary="fill")</figcaption>
               <table class="table mt-12">
                 <tr><th>diff vs SciPy</th><td>3.57627869e-07 (max abs)</td></tr>
                 <tr><th>diff vs 4-loop</th><td>9.53674316e-07 (max abs)</td></tr>
@@ -190,7 +264,7 @@
                 <tr><th>Dy (2-loop) vs SciPy</th><td>1.78039217e+00</td></tr>
                 <tr><th>Dy (4-loop) vs SciPy</th><td>1.78039217e+00</td></tr>
               </table>
-              <p class="caption mt-6">these match my <code>out/q1_1/*.txt</code> logs.</p>
+              <p class="caption mt-6">these match my <code>out/q1_1/*.txt</code> logs. (filters: Dx=[1,0,-1], Dy=Dxᵀ; mode="same", boundary="fill")</p>
             </div>
           </div>
         </div>
@@ -201,15 +275,15 @@
           <div class="grid grid-3 mt-12">
             <figure>
               <img class="img-sm" src="assets/q1_1/selfie_box9_2loops.png" alt="box 2-loop">
-              <figcaption class="caption">box (2-loop)</figcaption>
+              <figcaption class="caption">box (2-loop). (size=9, mode="same")</figcaption>
             </figure>
             <figure>
               <img class="img-sm" src="assets/q1_1/selfie_dx_2loops.png" alt="Dx 2-loop">
-              <figcaption class="caption">Dx (2-loop)</figcaption>
+              <figcaption class="caption">Dx (2-loop). (kernel=[1,0,-1], mode="same")</figcaption>
             </figure>
             <figure>
               <img class="img-sm" src="assets/q1_1/selfie_dy_2loops.png" alt="Dy 2-loop">
-              <figcaption class="caption">Dy (2-loop)</figcaption>
+              <figcaption class="caption">Dy (2-loop). (kernel=[1,0,-1]ᵀ, mode="same")</figcaption>
             </figure>
           </div>
         </div>
@@ -271,11 +345,11 @@
     <div class="grid grid-3 mt-12">
       <figure>
         <img src="assets/q1_2/cameraman_dx.png" alt="∂I/∂x (signed)">
-        <figcaption class="caption">∂I/∂x highlights vertical edges (left↔right contrast).</figcaption>
+        <figcaption class="caption">∂I/∂x highlights vertical edges (left↔right contrast). (kernel=Dx=[1,0,-1])</figcaption>
       </figure>
       <figure>
         <img src="assets/q1_2/cameraman_dy.png" alt="∂I/∂y (signed)">
-        <figcaption class="caption">∂I/∂y highlights horizontal edges (top↔bottom contrast).</figcaption>
+        <figcaption class="caption">∂I/∂y highlights horizontal edges (top↔bottom contrast). (kernel=Dy=Dxᵀ)</figcaption>
       </figure>
       <div class="explain math-sync">
         <h4>How I compute them</h4>
@@ -294,7 +368,7 @@
     <div class="grid grid-2 mt-12">
       <figure>
         <img src="assets/q1_2/cameraman_gradmag.png" alt="‖∇I‖">
-        <figcaption class="caption">‖∇I‖ = √(g<sub>x</sub><sup>2</sup> + g<sub>y</sub><sup>2</sup>). Unsigned edges, cleaner than the signed maps.</figcaption>
+        <figcaption class="caption">‖∇I‖ = √(g<sub>x</sub><sup>2</sup> + g<sub>y</sub><sup>2</sup>). (built from Dx/Dy responses)</figcaption>
       </figure>
       <div class="explain math-sync">
         <h4>Why magnitude?</h4>
@@ -324,27 +398,27 @@
     <div class="grid grid-3 mt-12">
       <figure>
         <img src="assets/q1_2/cameraman_edges_bin_t010.png" alt="Edges t=0.10">
-        <figcaption class="caption">t = 0.10</figcaption>
+        <figcaption class="caption">t = 0.10 (threshold on normalized ‖∇I‖)</figcaption>
       </figure>
       <figure>
         <img src="assets/q1_2/cameraman_edges_bin_t015.png" alt="Edges t=0.15">
-        <figcaption class="caption">t = 0.15</figcaption>
+        <figcaption class="caption">t = 0.15 (threshold on normalized ‖∇I‖)</figcaption>
       </figure>
       <figure>
         <img src="assets/q1_2/cameraman_edges_bin_t020.png" alt="Edges t=0.20">
-        <figcaption class="caption">t = 0.20</figcaption>
+        <figcaption class="caption">t = 0.20 (threshold on normalized ‖∇I‖)</figcaption>
       </figure>
       <figure>
         <img src="assets/q1_2/cameraman_edges_bin_t025.png" alt="Edges t=0.25">
-        <figcaption class="caption">t = 0.25</figcaption>
+        <figcaption class="caption">t = 0.25 (threshold on normalized ‖∇I‖)</figcaption>
       </figure>
       <figure>
         <img src="assets/q1_2/cameraman_edges_bin_t030.png" alt="Edges t=0.30">
-        <figcaption class="caption">t = 0.30</figcaption>
+        <figcaption class="caption">t = 0.30 (threshold on normalized ‖∇I‖)</figcaption>
       </figure>
       <figure>
         <img src="assets/q1_2/cameraman_edges_bin_t035.png" alt="Edges t=0.35">
-        <figcaption class="caption">t = 0.35</figcaption>
+        <figcaption class="caption">t = 0.35 (threshold on normalized ‖∇I‖)</figcaption>
       </figure>
     </div>
   </div>
@@ -355,7 +429,7 @@
     <div class="grid-balanced mt-12">
       <figure>
         <img src="assets/q1_2/cameraman_edges_bin_t020.png" alt="Chosen edges (t=0.20)">
-        <figcaption class="caption">Chosen threshold: <strong>t = 0.20</strong></figcaption>
+        <figcaption class="caption">Chosen threshold: <strong>t = 0.20</strong> (on normalized ‖∇I‖)</figcaption>
       </figure>
       <div>
         <h3 class="mt-0">Why I chose t = 0.20</h3>
@@ -413,12 +487,12 @@
     <figure>
       <img src="assets/q1_3/dog_kx.png" alt="DoG kx"
            style="width:420px; height:420px; object-fit:contain; image-rendering:crisp-edges;">
-      <figcaption class="caption">\(k_x = G * D_x\)</figcaption>
+      <figcaption class="caption">\(k_x = G * D_x\). (size=9, σ=1.5)</figcaption>
     </figure>
     <figure>
       <img src="assets/q1_3/dog_ky.png" alt="DoG ky"
            style="width:420px; height:420px; object-fit:contain; image-rendering:crisp-edges;">
-      <figcaption class="caption">\(k_y = G * D_y\)</figcaption>
+      <figcaption class="caption">\(k_y = G * D_y\). (size=9, σ=1.5)</figcaption>
     </figure>
   </div>
 </div>
@@ -429,11 +503,11 @@
     <div class="grid grid-2 mt-12">
       <figure>
         <img src="assets/q1_3/cameraman_blur.png" alt="Gaussian-blurred cameraman">
-        <figcaption class="caption">Cameraman after Gaussian blur (size 9, \(\sigma=1.5\)).</figcaption>
+        <figcaption class="caption">Cameraman after Gaussian blur. (size=9, σ=1.5)</figcaption>
       </figure>
       <figure>
         <img src="assets/q1_3/cameraman_blur_gradmag.png" alt="Gradmag after blur">
-        <figcaption class="caption">Gradient magnitude of the blurred image.</figcaption>
+        <figcaption class="caption">Gradient magnitude of the blurred image. (built from blur with size=9, σ=1.5)</figcaption>
       </figure>
     </div>
   </div>
@@ -444,7 +518,7 @@
     <div class="grid grid-2 mt-12">
       <figure>
         <img src="assets/q1_3/cameraman_dog_gradmag.png" alt="Gradmag via DoG">
-        <figcaption class="caption">Gradient magnitude from DoG (\(k_x,k_y\)) in a single convolution step.</figcaption>
+        <figcaption class="caption">Gradient magnitude via DoG. (kx,ky from size=9, σ=1.5)</figcaption>
       </figure>
       <div class="explain math-sync">
         <h4>What changes compared to 1.2?</h4>
@@ -461,20 +535,20 @@
   <div class="card mt-16">
     <span class="badge">Threshold sweep (blur→diff)</span>
     <div class="grid grid-3 mt-12">
-      <figure><img src="assets/q1_3/cameraman_blur_edges_t010.png" alt="blur edges t=0.10"><figcaption class="caption">t = 0.10</figcaption></figure>
-      <figure><img src="assets/q1_3/cameraman_blur_edges_t015.png" alt="blur edges t=0.15"><figcaption class="caption">t = 0.15</figcaption></figure>
-      <figure><img src="assets/q1_3/cameraman_blur_edges_t020.png" alt="blur edges t=0.20"><figcaption class="caption">t = 0.20</figcaption></figure>
-      <figure><img src="assets/q1_3/cameraman_blur_edges_t025.png" alt="blur edges t=0.25"><figcaption class="caption">t = 0.25</figcaption></figure>
+      <figure><img src="assets/q1_3/cameraman_blur_edges_t010.png" alt="blur edges t=0.10"><figcaption class="caption">t = 0.10 (size=9, σ=1.5)</figcaption></figure>
+      <figure><img src="assets/q1_3/cameraman_blur_edges_t015.png" alt="blur edges t=0.15"><figcaption class="caption">t = 0.15 (size=9, σ=1.5)</figcaption></figure>
+      <figure><img src="assets/q1_3/cameraman_blur_edges_t020.png" alt="blur edges t=0.20"><figcaption class="caption">t = 0.20 (size=9, σ=1.5)</figcaption></figure>
+      <figure><img src="assets/q1_3/cameraman_blur_edges_t025.png" alt="blur edges t=0.25"><figcaption class="caption">t = 0.25 (size=9, σ=1.5)</figcaption></figure>
     </div>
   </div>
 
   <div class="card mt-16">
     <span class="badge">Threshold sweep (DoG once)</span>
     <div class="grid grid-3 mt-12">
-      <figure><img src="assets/q1_3/cameraman_dog_edges_t010.png"  alt="dog edges t=0.10"><figcaption class="caption">t = 0.10</figcaption></figure>
-      <figure><img src="assets/q1_3/cameraman_dog_edges_t015.png"  alt="dog edges t=0.15"><figcaption class="caption">t = 0.15</figcaption></figure>
-      <figure><img src="assets/q1_3/cameraman_dog_edges_t020.png"  alt="dog edges t=0.20"><figcaption class="caption">t = 0.20</figcaption></figure>
-      <figure><img src="assets/q1_3/cameraman_dog_edges_t025.png"  alt="dog edges t=0.25"><figcaption class="caption">t = 0.25</figcaption></figure>
+      <figure><img src="assets/q1_3/cameraman_dog_edges_t010.png"  alt="dog edges t=0.10"><figcaption class="caption">t = 0.10 (DoG size=9, σ=1.5)</figcaption></figure>
+      <figure><img src="assets/q1_3/cameraman_dog_edges_t015.png"  alt="dog edges t=0.15"><figcaption class="caption">t = 0.15 (DoG size=9, σ=1.5)</figcaption></figure>
+      <figure><img src="assets/q1_3/cameraman_dog_edges_t020.png"  alt="dog edges t=0.20"><figcaption class="caption">t = 0.20 (DoG size=9, σ=1.5)</figcaption></figure>
+      <figure><img src="assets/q1_3/cameraman_dog_edges_t025.png"  alt="dog edges t=0.25"><figcaption class="caption">t = 0.25 (DoG size=9, σ=1.5)</figcaption></figure>
     </div>
   </div>
 
@@ -484,11 +558,11 @@
     <div class="grid grid-2 mt-12">
       <figure>
         <img src="assets/q1_3/cameraman_blur_edges_t020.png" alt="blur→diff t=0.20">
-        <figcaption class="caption">Blur → diff, t = 0.20</figcaption>
+        <figcaption class="caption">Blur → diff, t = 0.20. (blur size=9, σ=1.5)</figcaption>
       </figure>
       <figure>
         <img src="assets/q1_3/cameraman_dog_edges_t020.png" alt="DoG t=0.20">
-        <figcaption class="caption">DoG once, t = 0.20</figcaption>
+        <figcaption class="caption">DoG once, t = 0.20. (DoG size=9, σ=1.5)</figcaption>
       </figure>
     </div>
   </div>
@@ -524,142 +598,795 @@
 
   
 
-<section id="part2" class="section">
-  <h2>Part 2: Fun with Frequencies</h2>
+<!-- ===== Part 2 title (kept solid) ===== -->
+<section id="part2" class="section" style="opacity:1 !important; filter:none !important; mix-blend-mode:normal !important; text-shadow:none !important;">
+  <h2 style="opacity:1 !important; color:#0f172a !important; -webkit-text-fill-color:#0f172a !important; filter:none !important; mix-blend-mode:normal !important; text-shadow:none !important;">
+    Part 2: Fun with Frequencies
+  </h2>
 </section>
 
-<section id="part2-1">
-    <h2>Part 2.1: Image "Sharpening"</h2>
-    <p>
-      I used unsharp masking to sharpen images. I first blurred with a Gaussian, then subtracted to isolate high frequencies, and finally added these high frequencies back, scaled by a sharpening strength α. Increasing α exaggerates edges but can also introduce artifacts.
+<!-- =======================
+     Part 2.1 — Image "Sharpening"
+======================= -->
+<section id="part2-1" class="section">
+  <h2 style="opacity:1 !important; color:#0f172a !important;">Part 2.1: Image “Sharpening”</h2>
+
+  <p class="lead" style="opacity:1 !important; color:#0f172a !important;">
+    Unsharp masking uses a Gaussian blur \(G\) to split an image into low and high frequencies.
+    Low = \(I * G\). High = \(I - (I * G)\). To sharpen, I add a multiple of the highs back:
+    \(I_{\text{sharp}} = I + \alpha\,\big(I - I*G\big)\).
+    This is equivalent to a single convolution with kernel
+    \(K = (1+\alpha)\,\delta - \alpha\,G\), where \(\delta\) is an impulse at the center and \(\alpha\) sets the strength.
+  </p>
+
+  <!-- Taj workflow -->
+  <div class="card mt-16">
+    <span class="badge">Taj Mahal: blur → high → sharpen</span>
+    <div class="grid grid-3 mt-12">
+      <figure>
+        <img src="assets/q2_1/taj/input.png" alt="Taj input">
+        <figcaption class="caption">Input (for unsharp with G size=9, σ=1.5)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_1/taj/low.png" alt="Taj low-pass">
+        <figcaption class="caption">Gaussian blur (low frequencies). (size=9, σ=1.5)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_1/taj/high.png" alt="Taj high-pass">
+        <figcaption class="caption">High-pass (signed visualization). (derived from size=9, σ=1.5)</figcaption>
+      </figure>
+    </div>
+
+    <div class="grid grid-3 mt-12">
+      <figure>
+        <img src="assets/q2_1/taj/sharp_strength0.5.png" alt="Taj α=0.5">
+        <figcaption class="caption">\(\alpha=0.5\) (unsharp size=9, σ=1.5)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_1/taj/sharp_strength1.5.png" alt="Taj α=1.5">
+        <figcaption class="caption">\(\alpha=1.5\) (unsharp size=9, σ=1.5)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_1/taj/sharp_strength3.png" alt="Taj α=3.0">
+        <figcaption class="caption">\(\alpha=3.0\) (unsharp size=9, σ=1.5)</figcaption>
+      </figure>
+    </div>
+
+    <div class="grid grid-2 mt-12">
+      <figure>
+        <img src="assets/q2_1/taj/sharp_strength5.png" alt="Taj α=5.0">
+        <figcaption class="caption">\(\alpha=5.0\) (unsharp size=9, σ=1.5)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_1/taj/single_conv_strength2.png" alt="Taj single-conv α=2">
+        <figcaption class="caption">Single-convolution \(K\) with \(\alpha=2.0\). (G size=9, σ=1.5)</figcaption>
+      </figure>
+    </div>
+
+    <div class="explain mt-12">
+      <h4>Observation</h4>
+      <p>Moderate \(\alpha\) (about 1–2) improves clarity while staying clean. Large \(\alpha\) increases contrast across edges and creates halos.</p>
+    </div>
+  </div>
+
+  <!-- Second image: Cityscape -->
+  <div class="card mt-16">
+    <span class="badge">Cityscape: second example</span>
+    <div class="grid grid-3 mt-12">
+      <figure>
+        <img src="assets/q2_1/cityscape/input.png" alt="Cityscape input">
+        <figcaption class="caption">Input (for unsharp with G size=9, σ=1.5)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_1/cityscape/low.png" alt="Cityscape low">
+        <figcaption class="caption">Gaussian blur (low frequencies). (size=9, σ=1.5)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_1/cityscape/high.png" alt="Cityscape high">
+        <figcaption class="caption">High-pass (signed). (from size=9, σ=1.5)</figcaption>
+      </figure>
+    </div>
+
+    <div class="grid grid-3 mt-12">
+      <figure>
+        <img src="assets/q2_1/cityscape/sharp_strength1.0.png" alt="City α=1.0">
+        <figcaption class="caption">\(\alpha=1.0\) (unsharp size=9, σ=1.5)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_1/cityscape/sharp_strength3.png" alt="City α=3.0">
+        <figcaption class="caption">\(\alpha=3.0\) (unsharp size=9, σ=1.5)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_1/cityscape/sharp_strength5.png" alt="City α=5.0">
+        <figcaption class="caption">\(\alpha=5.0\) (unsharp size=9, σ=1.5)</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- Evaluation: sharp (waves+forest) → stronger blur → resharpen with very large α -->
+  <div class="card mt-16">
+    <span class="badge">Evaluation on waves + forest (sharp → stronger blur → resharpen)</span>
+    <p class="caption mb-6">I blurred the sharp image with a stronger \(G\) so the softening is obvious, then resharpened with a wide range of \(\alpha\).</p>
+
+    <div class="grid grid-3 mt-12">
+      <figure>
+        <img src="assets/q2_1/evaluation/original.png" alt="Original waves">
+        <figcaption class="caption">Original (high-res, sharp).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_1/evaluation/blurred.png" alt="Blurred waves">
+        <figcaption class="caption">Blurred by \(G\). (blur size=31, σ=4.5)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_1/evaluation/resharp_strength2.png" alt="Resharp α=2">
+        <figcaption class="caption">Resharpened, \(\alpha=2.0\). (unsharp size=9, σ=1.5)</figcaption>
+      </figure>
+    </div>
+
+    <div class="grid grid-3 mt-12">
+      <figure>
+        <img src="assets/q2_1/evaluation/resharp_strength3.png" alt="Resharp α=3">
+        <figcaption class="caption">\(\alpha=3.0\). (unsharp size=9, σ=1.5)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_1/evaluation/resharp_strength5.png" alt="Resharp α=5">
+        <figcaption class="caption">\(\alpha=5.0\). (unsharp size=9, σ=1.5)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_1/evaluation/resharp_strength10.png" alt="Resharp α=10">
+        <figcaption class="caption">\(\alpha=10\). (unsharp size=9, σ=1.5)</figcaption>
+      </figure>
+    </div>
+
+    <!-- Show the very large alphas you generated -->
+    <div class="grid grid-3 mt-12">
+      <figure>
+        <img src="assets/q2_1/evaluation/resharp_strength30.png" alt="Resharp α=30">
+        <figcaption class="caption">\(\alpha=30\). (unsharp size=9, σ=1.5)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_1/evaluation/resharp_strength60.png" alt="Resharp α=60">
+        <figcaption class="caption">\(\alpha=60\). (unsharp size=9, σ=1.5)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_1/evaluation/resharp_strength120.png" alt="Resharp α=120">
+        <figcaption class="caption">\(\alpha=120\). (unsharp size=9, σ=1.5)</figcaption>
+      </figure>
+    </div>
+
+    <div class="explain mt-12">
+      <h4>What this shows</h4>
+      <ul>
+        <li>Sharpening a blurred image improves perceived detail, but it does not recreate the lost fine frequencies.</li>
+        <li>There is a sweet spot: mid \(\alpha\) (about 2–3 here) looks closest to the original without obvious halos.</li>
+        <li>Very large \(\alpha\) overshoots and produces ringing, especially along the shoreline and tree silhouettes.</li>
+      </ul>
+      <p class="text-muted mb-0">I saved MSE logs for each \(\alpha\) in the evaluation folder. The lowest errors fall in the same mid range, which matches the visuals.</p>
+    </div>
+  </div>
+
+  <div class="callout mt-16"
+  style="opacity:1 !important; filter:none !important; mix-blend-mode:normal !important; text-shadow:none !important; color:#0f172a !important; -webkit-text-fill-color:#0f172a !important;">
+<strong>Summary:</strong> I implemented unsharp masking and explained it in terms of blur and high frequencies.
+I showed low, high, and sharpened versions for the Taj image and for a second image (cityscape).
+I also varied \(\alpha\) to show how the amount changes the look. In the evaluation, I blurred a sharp photo and tried
+to get back the sharpness by adding highs. Mid \(\alpha\) looks most natural; very large \(\alpha\) brings artifacts.
+</div>
+
+</section>
+
+
+
+  <!-- =======================
+     Part 2.2 — Hybrid Images
+     Drop this right after your Part 2.1 section
+======================= -->
+
+<!-- Force-opaque just for Section 2.2 (text, captions, and MathJax) -->
+<style>
+  #part2-2, #part2-2 * {
+    opacity: 1 !important;
+    filter: none !important;
+    mix-blend-mode: normal !important;
+    text-shadow: none !important;
+  }
+  #part2-2,
+  #part2-2 p, #part2-2 h2, #part2-2 h3, #part2-2 h4,
+  #part2-2 .caption, #part2-2 .badge, #part2-2 .callout {
+    color: var(--ink) !important;
+    -webkit-text-fill-color: currentColor !important;
+  }
+  /* MathJax inside 2.2 always inherits the surrounding color */
+  #part2-2 .MathJax,
+  #part2-2 .mjx-chtml,
+  #part2-2 .mjx-math,
+  #part2-2 [class^="mjx-"],
+  #part2-2 [class*=" mjx-"]{
+    color: currentColor !important;
+    -webkit-text-fill-color: currentColor !important;
+    opacity: 1 !important;
+    filter: none !important;
+    mix-blend-mode: normal !important;
+    text-shadow: none !important;
+  }
+</style>
+
+<section id="part2-2" class="section">
+  <h2 style="opacity:1 !important; color:#0f172a !important;">
+    Part 2.2: Hybrid Images
+  </h2>
+
+  <!-- Teaser -->
+  <div class="card">
+    <span class="badge">teaser</span>
+    <div class="grid-balanced mt-12">
+      <div>
+        <p class="lead">
+          Look at the image on the right from very close, then from far away.
+          Up close you see the high-frequency subject. From far away the low-frequency subject dominates.
+        </p>
+      </div>
+      <figure>
+        <!-- use a clear hybrid as teaser; Derek+Nutmeg works well -->
+        <img src="assets/q2_2/derek_nutmeg/hybrid.png" alt="Hybrid teaser (Derek + Nutmeg)">
+        <figcaption class="caption">Hybrid image changes with viewing distance. (low: size=21, σ=4; high: size=13, σ=3)</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- Overview -->
+  <div class="card mt-16">
+    <span class="badge">overview</span>
+    <p class="mt-12">
+      Hybrid images follow the idea from Oliva, Torralba, and Schyns (SIGGRAPH 2006).
+      High frequencies dominate perception up close, while low frequencies survive at distance.
+      I low-pass one image with a Gaussian \(G\) to get \(I_{\text{low}} = I * G\),
+      high-pass the other with \(I_{\text{high}} = J - (J * G)\),
+      then add them: \(H = I_{\text{low}} + I_{\text{high}}\).
+      Alignment matters because it controls how features group; I aligned pairs before filtering.
     </p>
-  
-    <!-- Taj Mahal -->
-    <h3>Taj Mahal</h3>
-    <div class="img-row">
-      <figure><img src="assets/q2_1/taj/input.png" width="250"><figcaption>Input</figcaption></figure>
-      <figure><img src="assets/q2_1/taj/low.png" width="250"><figcaption>Blurred</figcaption></figure>
-      <figure><img src="assets/q2_1/taj/high.png" width="250"><figcaption>High-pass</figcaption></figure>
-      <figure><img src="assets/q2_1/taj/sharp_strength0.5.png" width="250"><figcaption>Sharpened (0.5)</figcaption></figure>
-      <figure><img src="assets/q2_1/taj/sharp_strength1.0.png" width="250"><figcaption>Sharpened (1.0)</figcaption></figure>
-      <figure><img src="assets/q2_1/taj/sharp_strength1.5.png" width="250"><figcaption>Sharpened (1.5)</figcaption></figure>
-    </div>
-  
-    <!-- Cat portrait -->
-    <h3>Cat Portrait</h3>
-    <div class="img-row">
-      <figure><img src="assets/q2_1/portrait/input.png" width="250"><figcaption>Input</figcaption></figure>
-      <figure><img src="assets/q2_1/portrait/low.png" width="250"><figcaption>Blurred</figcaption></figure>
-      <figure><img src="assets/q2_1/portrait/high.png" width="250"><figcaption>High-pass</figcaption></figure>
-      <figure><img src="assets/q2_1/portrait/sharp_strength0.5.png" width="250"><figcaption>0.5</figcaption></figure>
-      <figure><img src="assets/q2_1/portrait/sharp_strength1.0.png" width="250"><figcaption>1.0</figcaption></figure>
-      <figure><img src="assets/q2_1/portrait/sharp_strength1.5.png" width="250"><figcaption>1.5</figcaption></figure>
-    </div>
-  
-    <!-- Cityscape -->
-    <h3>Cityscape</h3>
-    <div class="img-row">
-      <figure><img src="assets/q2_1/cityscape/input.png" width="250"><figcaption>Input</figcaption></figure>
-      <figure><img src="assets/q2_1/cityscape/low.png" width="250"><figcaption>Blurred</figcaption></figure>
-      <figure><img src="assets/q2_1/cityscape/high.png" width="250"><figcaption>High-pass</figcaption></figure>
-      <figure><img src="assets/q2_1/cityscape/sharp_strength0.5.png" width="250"><figcaption>0.5</figcaption></figure>
-      <figure><img src="assets/q2_1/cityscape/sharp_strength1.0.png" width="250"><figcaption>1.0</figcaption></figure>
-      <figure><img src="assets/q2_1/cityscape/sharp_strength1.5.png" width="250"><figcaption>1.5</figcaption></figure>
-    </div>
-  
-    <!-- Old photograph -->
-    <h3>Old Photograph</h3>
-    <div class="img-row">
-      <figure><img src="assets/q2_1/oldphoto/input.png" width="250"><figcaption>Input</figcaption></figure>
-      <figure><img src="assets/q2_1/oldphoto/low.png" width="250"><figcaption>Blurred</figcaption></figure>
-      <figure><img src="assets/q2_1/oldphoto/high.png" width="250"><figcaption>High-pass</figcaption></figure>
-      <figure><img src="assets/q2_1/oldphoto/sharp_strength0.5.png" width="250"><figcaption>0.5</figcaption></figure>
-      <figure><img src="assets/q2_1/oldphoto/sharp_strength1.0.png" width="250"><figcaption>1.0</figcaption></figure>
-      <figure><img src="assets/q2_1/oldphoto/sharp_strength1.5.png" width="250"><figcaption>1.5</figcaption></figure>
-    </div>
-  </section>
+  </div>
 
-  <section id="part2-2">
-    <h2>Part 2.2: Hybrid Images</h2>
-    <p>
-      I aligned image pairs interactively and combined the low-pass of one with the high-pass of the other. Hybrids appear differently depending on viewing distance: close-up you see the high-frequency image, while from afar the low-frequency image dominates.
-    </p>
-  
-    <!-- Example 1 -->
-    <h3>Derek + Nutmeg (official example)</h3>
-    <div class="img-row">
-      <figure><img src="assets/q2_2/derek_nutmeg/a_aligned.png" width="200"><figcaption>Aligned A</figcaption></figure>
-      <figure><img src="assets/q2_2/derek_nutmeg/b_aligned.png" width="200"><figcaption>Aligned B</figcaption></figure>
-      <figure><img src="assets/q2_2/derek_nutmeg/low.png" width="200"><figcaption>Low(A)</figcaption></figure>
-      <figure><img src="assets/q2_2/derek_nutmeg/high.png" width="200"><figcaption>High(B)</figcaption></figure>
-      <figure><img src="assets/q2_2/derek_nutmeg/hybrid.png" width="200"><figcaption>Hybrid</figcaption></figure>
-    </div>
-    <div class="img-row">
-      <figure><img src="assets/q2_2/derek_nutmeg/a_fft.png" width="200"><figcaption>FFT(A)</figcaption></figure>
-      <figure><img src="assets/q2_2/derek_nutmeg/b_fft.png" width="200"><figcaption>FFT(B)</figcaption></figure>
-      <figure><img src="assets/q2_2/derek_nutmeg/hybrid_fft.png" width="200"><figcaption>FFT(Hybrid)</figcaption></figure>
-    </div>
-  
-    <!-- Example 2 -->
-    <h3>Einstein + Marilyn</h3>
-    <div class="img-row">
-      <figure><img src="assets/q2_2/einstein_mar/a_aligned.png" width="200"><figcaption>Aligned A</figcaption></figure>
-      <figure><img src="assets/q2_2/einstein_mar/b_aligned.png" width="200"><figcaption>Aligned B</figcaption></figure>
-      <figure><img src="assets/q2_2/einstein_mar/low.png" width="200"><figcaption>Low(A)</figcaption></figure>
-      <figure><img src="assets/q2_2/einstein_mar/high.png" width="200"><figcaption>High(B)</figcaption></figure>
-      <figure><img src="assets/q2_2/einstein_mar/hybrid.png" width="200"><figcaption>Hybrid</figcaption></figure>
-    </div>
-  
-    <!-- Example 3 -->
-    <h3>Cat + Lion</h3>
-    <div class="img-row">
-      <figure><img src="assets/q2_2/cat_lion/a_aligned.png" width="200"><figcaption>Aligned A</figcaption></figure>
-      <figure><img src="assets/q2_2/cat_lion/b_aligned.png" width="200"><figcaption>Aligned B</figcaption></figure>
-      <figure><img src="assets/q2_2/cat_lion/low.png" width="200"><figcaption>Low(A)</figcaption></figure>
-      <figure><img src="assets/q2_2/cat_lion/high.png" width="200"><figcaption>High(B)</figcaption></figure>
-      <figure><img src="assets/q2_2/cat_lion/hybrid.png" width="200"><figcaption>Hybrid</figcaption></figure>
-    </div>
-  </section>
+  <!-- Full process example with FFTs -->
+  <div class="card mt-16">
+    <span class="badge">full process: person + old man (with FFTs)</span>
 
-<section id="p23" class="section">
-  <h3>Part 2.3: Gaussian and Laplacian Stacks</h3>
-  <p>I implemented stacks (no downsampling) and reproduced Szeliski Fig. 3.42-style layouts. I tile each level with min-max normalization for visibility and include the 4×3 grid (three Laplacian bands + masked originals + final blend).</p>
+    <h3 class="mt-12">Inputs and alignment</h3>
+    <div class="grid grid-3 mt-12">
+      <figure>
+        <img src="assets/q2_2/person_oldman/a_aligned.png" alt="Person aligned">
+        <figcaption class="caption">Left image (low). (low_size=21, low_sigma=4)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_2/person_oldman/b_aligned.png" alt="Old man aligned">
+        <figcaption class="caption">Right image (high). (high_size=13, high_sigma=2)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_2/person_oldman/hybrid.png" alt="Hybrid result">
+        <figcaption class="caption">Final hybrid. (low 21/4 + high 13/2)</figcaption>
+      </figure>
+    </div>
 
-  <div class="grid">
-    <figure><img src="assets/q2_3/apple_gauss_stack.png" alt="apple G"><figcaption>Apple: Gaussian stack</figcaption></figure>
-    <figure><img src="assets/q2_3/apple_lap_stack.png"   alt="apple L"><figcaption>Apple: Laplacian stack</figcaption></figure>
-    <figure><img src="assets/q2_3/orange_gauss_stack.png" alt="orange G"><figcaption>Orange: Gaussian stack</figcaption></figure>
-    <figure><img src="assets/q2_3/orange_lap_stack.png"   alt="orange L"><figcaption>Orange: Laplacian stack</figcaption></figure>
-    <figure class="wide"><img src="assets/q2_3/szeliski_342_grid.png" alt="4x3 grid"><figcaption>Fig 3.42-style 4×3 grid</figcaption></figure>
+    <h3 class="mt-16">Frequency analysis (log magnitude FFT)</h3>
+    <div class="grid grid-3 mt-12">
+      <figure>
+        <img src="assets/q2_2/person_oldman/a_fft.png" alt="FFT of left">
+        <figcaption class="caption">FFT of left (original). (pre-hybrid)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_2/person_oldman/b_fft.png" alt="FFT of right">
+        <figcaption class="caption">FFT of right (original). (pre-hybrid)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_2/person_oldman/hybrid_fft.png" alt="FFT of hybrid">
+        <figcaption class="caption">FFT of hybrid. (low 21/4 + high 13/2)</figcaption>
+      </figure>
+    </div>
+
+    <h3 class="mt-16">Filtered pieces</h3>
+    <div class="grid grid-3 mt-12">
+      <figure>
+        <img src="assets/q2_2/person_oldman/low.png" alt="Low-pass of left">
+        <figcaption class="caption">Low-pass of left. (size=21, σ=4)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_2/person_oldman/high.png" alt="High-pass of right">
+        <figcaption class="caption">High-pass of right. (size=13, σ=2)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_2/person_oldman/hybrid.png" alt="Hybrid again">
+        <figcaption class="caption">Sum of low and high. (low 21/4 + high 13/2)</figcaption>
+      </figure>
+    </div>
+
+    <div class="explain mt-12">
+      <h4>Cutoff choices</h4>
+      <p>
+        I set the low-pass size/sigma to balance shape and detail in the base face,
+        and set the high-pass size/sigma to keep crisp features without making halos.
+        The FFTs show energy concentrated at the center for the lows and spread out for the highs,
+        and the hybrid mixes both patterns.
+      </p>
+    </div>
+  </div>
+
+  <!-- Derek + Nutmeg (required example) -->
+  <div class="card mt-16">
+    <span class="badge">Derek + Nutmeg</span>
+    <div class="grid grid-3 mt-12">
+      <figure>
+        <img src="assets/q2_2/derek_nutmeg/a_aligned.png" alt="Derek aligned">
+        <figcaption class="caption">Left input (low). (low_size=21, low_sigma=4)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_2/derek_nutmeg/b_aligned.png" alt="Nutmeg aligned">
+        <figcaption class="caption">Right input (high). (high_size=13, high_sigma=3)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_2/derek_nutmeg/hybrid.png" alt="Derek+Nutmeg hybrid">
+        <figcaption class="caption">Hybrid. (low 21/4 + high 13/3)</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- Your own example #1 -->
+  <div class="card mt-16">
+    <span class="badge">Einstein + Marilyn</span>
+    <div class="grid grid-3 mt-12">
+      <figure>
+        <img src="assets/q2_2/einstein_mar/a_aligned.png" alt="Einstein aligned">
+        <figcaption class="caption">Left input (low). (low_size=21, low_sigma=4)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_2/einstein_mar/b_aligned.png" alt="Marilyn aligned">
+        <figcaption class="caption">Right input (high). (high_size=17, high_sigma=2)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_2/einstein_mar/hybrid.png" alt="Einstein+Marilyn hybrid">
+        <figcaption class="caption">Hybrid. (low 21/4 + high 17/2)</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- Your own example #2 -->
+  <div class="card mt-16">
+    <span class="badge">Cat + Lion</span>
+    <div class="grid grid-3 mt-12">
+      <figure>
+        <img src="assets/q2_2/cat_lion/a_aligned.png" alt="Cat aligned">
+        <figcaption class="caption">Left input (low). (low_size=21, low_sigma=4)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_2/cat_lion/b_aligned.png" alt="Lion aligned">
+        <figcaption class="caption">Right input (high). (high_size=13, high_sigma=3)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_2/cat_lion/hybrid.png" alt="Cat+Lion hybrid">
+        <figcaption class="caption">Hybrid. (low 21/4 + high 13/3)</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <div class="callout mt-16"
+       style="opacity:1 !important; filter:none !important; mix-blend-mode:normal !important; text-shadow:none !important; color:#0f172a !important; -webkit-text-fill-color:#0f172a !important;">
+    <strong>Takeaways:</strong>
+    Up close, the high-frequency face drives perception; from far away, the low-frequency face wins.
+    Good alignment and careful cutoffs matter. If the high cutoff is too small, the hybrid looks muddy.
+    If it is too large, halos and ghosting appear.
   </div>
 </section>
+
+
+<!-- Force-opaque just for Section 2.3 (text, captions, images, MathJax) -->
+<style>
+  #part2-3, #part2-3 * {
+    opacity: 1 !important;
+    filter: none !important;
+    mix-blend-mode: normal !important;
+    text-shadow: none !important;
+  }
+  #part2-3,
+  #part2-3 p, #part2-3 h2, #part2-3 h3, #part2-3 h4,
+  #part2-3 .caption, #part2-3 .badge, #part2-3 .callout {
+    color: var(--ink) !important;
+    -webkit-text-fill-color: currentColor !important;
+  }
+  #part2-3 .MathJax,
+  #part2-3 .mjx-chtml,
+  #part2-3 .mjx-math,
+  #part2-3 [class^="mjx-"],
+  #part2-3 [class*=" mjx-"]{
+    color: currentColor !important;
+    -webkit-text-fill-color: currentColor !important;
+    opacity: 1 !important;
+    filter: none !important;
+    mix-blend-mode: normal !important;
+    text-shadow: none !important;
+  }
+</style>
+
+<section id="part2-3" class="section">
+  <h2 style="color:#000000 !important; -webkit-text-fill-color:#000000 !important; opacity:1 !important; filter:none !important; mix-blend-mode:normal !important; text-shadow:none !important;">
+    Part 2.3: Gaussian and Laplacian Stacks
+  </h2>
+
+  <!-- Overview -->
+  <div class="card">
+    <span class="badge">overview</span>
+    <div class="grid-balanced mt-12">
+      <div>
+        <p class="lead">
+          I implemented <em>stacks</em> (no downsampling) to prepare for multi-resolution blending.
+          A Gaussian stack repeatedly blurs an image while keeping the same size at every level.
+          A Laplacian stack stores band-pass information as differences between consecutive Gaussian levels,
+          plus the final low-pass residual at the top level.
+        </p>
+        <p class="mb-0">
+          I built both stacks <strong>from scratch</strong> (no <code>cv2.pyrDown</code> or
+          <code>skimage</code> pyramids). For this section I used
+          <strong>7 levels</strong> with a <strong>31×31</strong> Gaussian and
+          <strong>σ = 5.0</strong>. Apple and Orange are aligned first so stack operations act on
+          corresponding pixels.
+        </p>
+      </div>
+      <figure>
+        <img src="assets/q2_3/fig342.png" alt="Figure 3.42 reference (layout)">
+        <figcaption class="caption">Target layout for the “Oraple” style visualization. (levels=7, size=31, σ=5.0)</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- Stacks for Apple and Orange -->
+  <div class="card mt-16">
+    <span class="badge">Gaussian &amp; Laplacian stacks (no downsampling)</span>
+    <p class="mt-12">
+      Below are tiled views of the stacks for each image. Each tile row is a level in the stack.
+      The Laplacian views are normalized for display to reveal their bands clearly.
+    </p>
+    <div class="grid grid-2 mt-12">
+      <figure>
+        <img src="assets/q2_3/apple_gauss_stack.png" alt="Apple Gaussian stack">
+        <figcaption class="caption">Apple — Gaussian stack. (levels=7, size=31, σ=5.0)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_3/apple_lap_stack.png" alt="Apple Laplacian stack">
+        <figcaption class="caption">Apple — Laplacian stack. (levels=7)</figcaption>
+      </figure>
+    </div>
+    <div class="grid grid-2 mt-12">
+      <figure>
+        <img src="assets/q2_3/orange_gauss_stack.png" alt="Orange Gaussian stack">
+        <figcaption class="caption">Orange — Gaussian stack. (levels=7, size=31, σ=5.0)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_3/orange_lap_stack.png" alt="Orange Laplacian stack">
+        <figcaption class="caption">Orange — Laplacian stack. (levels=7)</figcaption>
+      </figure>
+    </div>
+    <div class="explain mt-12">
+      <h4>Why stacks vs. pyramids?</h4>
+      <p class="mb-0">
+        In a pyramid you downsample, so shapes shrink each level. In a stack you never downsample,
+        which makes it easy to combine levels across images pixel-wise and to visualize all bands
+        in a single grid without resizing.
+      </p>
+    </div>
+  </div>
+
+  <!-- Recreating Szeliski Fig. 3.42 a–l -->
+  <div class="card mt-16">
+    <span class="badge">Recreating Szeliski Fig. 3.42 (a)–(l)</span>
+    <p class="mt-12">
+      I reproduced the four-row grid: three rows show Laplacian-band compositing at selected levels,
+      and the last row shows masked originals and the final blend (“Oraple”). The grid below matches
+      cells (a) through (l) left-to-right, top-to-bottom.
+    </p>
+    <figure class="mt-12">
+      <img src="assets/q2_3/szeliski_342_grid_color.png" alt="Grid a–l (color)">
+      <figcaption class="caption">My Fig. 3.42 grid (color). (levels=7, size=31, σ=5.0)</figcaption>
+    </figure>
+
+    <div class="grid grid-3 mt-12">
+      <figure>
+        <img src="assets/q2_3/a_color.png" alt="Cell a">
+        <figcaption class="caption">a: Apple band × mask (selected level)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_3/b_color.png" alt="Cell b">
+        <figcaption class="caption">b: Orange band × (1 − mask) (selected level)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_3/c_color.png" alt="Cell c">
+        <figcaption class="caption">c: Sum of a and b (selected level)</figcaption>
+      </figure>
+    </div>
+
+    <div class="grid grid-3 mt-12">
+      <figure>
+        <img src="assets/q2_3/j_color.png" alt="Cell j">
+        <figcaption class="caption">j: Apple × mask (original scale)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_3/k_color.png" alt="Cell k">
+        <figcaption class="caption">k: Orange × (1 − mask)</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_3/l_color.png" alt="Cell l">
+        <figcaption class="caption">l: Final multiband blend (Oraple). (levels=7)</figcaption>
+      </figure>
+    </div>
+
+    <div class="explain mt-12">
+      <h4>How the grid is built</h4>
+      <ul>
+        <li>Create Gaussian stacks \(G_A, G_B\) for Apple and Orange; Laplacian stacks \(L_A, L_B\) from their differences.</li>
+        <li>Build a soft vertical mask \(M\) and its Gaussian stack \(G_M\) to avoid seams.</li>
+        <li>For selected levels \(i\), blend Laplacian bands: \(L_{\text{out}}[i] = G_M[i]\cdot L_A[i] + (1 - G_M[i])\cdot L_B[i]\).</li>
+        <li>Sum all \(L_{\text{out}}\) levels and clip to \([0,1]\) to get the final image.</li>
+      </ul>
+      <p class="text-muted mb-0">
+        I saved each cell (a–l) individually (<code>a_color.png</code> … <code>l_color.png</code>) and the combined grids
+        (<code>szeliski_342_grid.png</code>, <code>szeliski_342_grid_color.png</code>).
+      </p>
+    </div>
+  </div>
+
+  <!-- Final Oraple result -->
+  <div class="card mt-16">
+    <span class="badge">Final blend</span>
+    <div class="grid-balanced mt-12">
+      <figure>
+        <img src="assets/q2_3/oraple_result.png" alt="Oraple final result">
+        <figcaption class="caption">Multiband blend result. (levels=7, size=31, σ=5.0; vertical cosine mask)</figcaption>
+      </figure>
+      <div class="callout">
+        <strong>Notes:</strong>
+        The mask is a cosine ramp around the vertical seam. Its own Gaussian stack makes transitions
+        smoother at coarse levels, which is why the boundary is seamless across scales.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =======================
+     Part 2.4 — Multiresolution Blending
+======================= -->
+<style>
+  /* Force black for title + intro paragraph */
+  #p24 h2, 
+  #p24 p.lead {
+    opacity: 1 !important;
+    filter: none !important;
+    mix-blend-mode: normal !important;
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+    text-shadow: none !important;
+  }
+
+  /* Force white ONLY for the “Why” paragraphs */
+  #p24 .why {
+    opacity: 1 !important;
+    filter: none !important;
+    mix-blend-mode: normal !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    background: transparent !important;
+    text-shadow: none !important;
+  }
+
+  /* Layout helpers */
+  #p24 .tri {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+  #p24 .duo {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+  #p24 .full {
+    display: flex;
+    justify-content: center;   /* center horizontally */
+    gap: 12px;
+    margin-top: 12px;
+  }
+  #p24 figure { margin: 0; }
+</style>
 
 <section id="p24" class="section">
-  <h3>Part 2.4: Multiresolution Blending (a.k.a. the Oraple!)</h3>
-  <p>I blend with a cosine step mask (vertical) for apple+orange, a circular irregular mask for cat+dog, and my own before/after portrait where I align interactively, crop the top 20% for framing, and use a vertical cosine seam.</p>
+  <h2>Part 2.4: Multiresolution Blending (the Oraple and others)</h2>
 
-  <div class="grid">
-    <figure><img src="assets/q2_4/oraple_vertical/mask.png" alt="mask"><figcaption>Oraple mask</figcaption></figure>
-    <figure><img src="assets/q2_4/oraple_vertical/result.png" alt="oraple"><figcaption>Oraple result</figcaption></figure>
-    <figure><img src="assets/q2_4/cat_dog_irregular/mask.png" alt="mask"><figcaption>Irregular mask</figcaption></figure>
-    <figure><img src="assets/q2_4/cat_dog_irregular/result.png" alt="cd"><figcaption>Cat + Dog</figcaption></figure>
-    <figure><img src="assets/q2_4/cat_dog_irregular/lap_outputs_tile.png" alt="Lout"><figcaption>Laplacian outputs (favorite)</figcaption></figure>
+  <p class="lead">
+    To blend images smoothly I used Gaussian and Laplacian stacks for both inputs and for a soft mask.
+    At each level \(i\) I combined the Laplacians with the blurred mask:
+    \[
+      L_{\text{out}}^{(i)} = G_M^{(i)} \cdot L_A^{(i)} + \big(1 - G_M^{(i)}\big) \cdot L_B^{(i)}
+    \]
+    Adding these bands together gives the final image. The blurred mask lets low frequencies blend broadly and high
+    frequencies blend narrowly, which hides seams.
+  </p>
+
+  <!-- ================= Oraple ================= -->
+  <div class="card mt-16">
+    <span class="badge">Oraple: Apple + Orange</span>
+    <p>
+      I chose apple and orange because they are the classic example from the paper. The round shapes and strong color
+      contrast make the seam obvious unless blending is done correctly.
+    </p>
+
+    <!-- Originals -->
+    <div class="duo mt-12">
+      <figure>
+        <img src="assets/data/apple.jpeg" alt="Apple (original)">
+        <figcaption class="caption">Before: Apple (original input).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/data/orange.jpeg" alt="Orange (original)">
+        <figcaption class="caption">Before: Orange (original input).</figcaption>
+      </figure>
+    </div>
+
+    <!-- Masked pieces -->
+    <div class="tri mt-12">
+      <figure>
+        <img src="assets/q2_4/oraple_vertical/mask.png" alt="Oraple mask">
+        <figcaption class="caption">Cosine vertical mask. Params: levels=7, size=31, σ=5.0.</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_3/j_color.png" alt="Apple × mask (cell j)">
+        <figcaption class="caption">Masked A (Apple × mask).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_3/k_color.png" alt="Orange × (1−mask) (cell k)">
+        <figcaption class="caption">Masked B (Orange × (1−mask)).</figcaption>
+      </figure>
+    </div>
+
+    <!-- Final -->
+    <div class="full">
+      <figure>
+        <img src="assets/q2_4/oraple_vertical/result.png" alt="Oraple result">
+        <figcaption class="caption">Final Oraple blend.</figcaption>
+      </figure>
+    </div>
   </div>
 
-  <div class="grid">
-    <figure><img src="assets/q2_4/me_before_after_vertical_aligned/aligned_A.png" alt="A aligned"><figcaption>Before (aligned, cropped top 20%)</figcaption></figure>
-    <figure><img src="assets/q2_4/me_before_after_vertical_aligned/aligned_B.png" alt="B aligned"><figcaption>After (aligned, cropped)</figcaption></figure>
-    <figure><img src="assets/q2_4/me_before_after_vertical_aligned/mask.png" alt="mask"><figcaption>Vertical cosine mask</figcaption></figure>
-    <figure class="wide"><img src="assets/q2_4/me_before_after_vertical_aligned/result.png" alt="result"><figcaption>Before/After blend</figcaption></figure>
+  <!-- ================= City + Snowy Forest ================= -->
+  <div class="card mt-16">
+    <span class="badge">City + Snowy Forest</span>
+    <p class="why">
+      Why these pairs: The city with the snowy forest shows a built space emerging from nature. I wanted
+      to show a city springing out of the forest floor, with the snowy ground fading naturally into the city.
+    </p>
+
+    <!-- Originals -->
+    <div class="duo mt-12">
+      <figure>
+        <img src="assets/data/city_skyline.png" alt="City skyline (original)">
+        <figcaption class="caption">Before: City skyline (original input).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/data/snowy_forest.png" alt="Snowy forest (original)">
+        <figcaption class="caption">Before: Snowy forest (original input).</figcaption>
+      </figure>
+    </div>
+
+    <!-- Masked pieces -->
+    <div class="tri mt-12">
+      <figure>
+        <img src="assets/q2_4/cat_dog_irregular/mask.png" alt="Irregular mask">
+        <figcaption class="caption">Circular soft mask. Params: levels=7, size=31, σ=5.0.</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_4/cat_dog_irregular/masked_A.png" alt="City masked">
+        <figcaption class="caption">Masked A (City side).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_4/cat_dog_irregular/masked_B.png" alt="Forest masked">
+        <figcaption class="caption">Masked B (Forest side).</figcaption>
+      </figure>
+    </div>
+
+    <!-- Final -->
+    <div class="full">
+      <figure>
+        <img src="assets/q2_4/cat_dog_irregular/result.png" alt="City+Forest result">
+        <figcaption class="caption">Final irregular-mask blend.</figcaption>
+      </figure>
+    </div>
+
+    <!-- Laplacian outputs -->
+    <div class="full mt-12">
+      <figure>
+        <img src="assets/q2_4/cat_dog_irregular/lap_outputs_tile.png" alt="Laplacian outputs">
+        <figcaption class="caption">Laplacian outputs per level (like Fig. 10).</figcaption>
+      </figure>
+    </div>
   </div>
 
-  <p><strong>Note:</strong> I clicked the same two landmarks (left eye center, nose tip) in both images to align. Cropping the top 20% avoids blank background and centers the face.</p>
+  <!-- ================= Before/After portraits ================= -->
+  <div class="card mt-16">
+    <span class="badge">Before/After portraits</span>
+    <p class="why">
+      Why these pairs: The portraits show a personal before/after. One photo is from high school six years
+      ago and the other is a recent college portrait. They were aligned using my eye positions so the face
+      parts line up. A vertical cosine mask lets the two halves merge smoothly across the face.
+    </p>
+
+    <!-- Originals -->
+    <div class="duo mt-12">
+      <figure>
+        <img src="assets/data/me_before.jpeg" alt="Before portrait">
+        <figcaption class="caption">Before: High school portrait (original input).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/data/me_after.jpeg" alt="After portrait">
+        <figcaption class="caption">After: College portrait (original input).</figcaption>
+      </figure>
+    </div>
+
+    <!-- Masked pieces -->
+    <div class="tri mt-12">
+      <figure>
+        <img src="assets/q2_4/me_before_after_vertical_aligned/mask.png" alt="Vertical mask">
+        <figcaption class="caption">Vertical cosine mask. Params: levels=7, size=31, σ=5.0.</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_4/me_before_after_vertical_aligned/masked_A.png" alt="Masked before">
+        <figcaption class="caption">Masked A (Before side).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_4/me_before_after_vertical_aligned/masked_B.png" alt="Masked after">
+        <figcaption class="caption">Masked B (After side).</figcaption>
+      </figure>
+    </div>
+
+    <!-- Final -->
+    <div class="full">
+      <figure>
+        <img src="assets/q2_4/me_before_after_vertical_aligned/result.png" alt="Blended portrait">
+        <figcaption class="caption">Final blended portrait.</figcaption>
+      </figure>
+    </div>
+
+    <!-- Laplacian outputs -->
+    <div class="full mt-12">
+      <figure>
+        <img src="assets/q2_4/me_before_after_vertical_aligned/lap_outputs_tile.png" alt="Portrait Laplacians">
+        <figcaption class="caption">Laplacian outputs per level (like Fig. 10).</figcaption>
+      </figure>
+    </div>
+  </div>
 </section>
 
-<section class="section">
-  <h3>Most important thing I learned</h3>
-  <p>I finally felt how “frequency” is not abstract: edges pop because they’re literally high-frequency changes. Building stacks by hand made the “smoother seam per band” idea click, and I saw why the Gaussianized mask is essential for multires blending.</p>
+
+
+
+
+<!-- =======================
+     Reflection — What I Learned
+======================= -->
+<section id="reflection" class="section">
+  <h2 style="opacity:1 !important; color:#0f172a !important; -webkit-text-fill-color:#0f172a !important;">
+    Reflection: What I Learned
+  </h2>
+  <p class="lead" style="opacity:1 !important; color:#0f172a !important;">
+    The most important thing I learned was how much control you can get once you build everything yourself. 
+
+    Writing my own Gaussian and Laplacian stacks instead of calling a library forced me to understand how each level carries 
+    different information, and why blending works when the mask is blurred at multiple scales. 
+    When I made the Oraple I saw how a seam that looked terrible at the pixel level almost disappeared once the stacks were combined. 
+    The before/after portrait also stood out because I had to decide which features of mine I had to align on to make the merge as seemless as possible. 
+    made the math feel real. 
+    
+    This project taught me that the details I used to skip over, like the exact sigma or ramp width, 
+    actually decide whether an image looks natural or broken: This has led me to be more vigilant towards images I see online! 
+  </p>
 </section>
+
 
 <footer class="site-footer">
   <p>© 2025 — CS180/280A Project 2.</p>
