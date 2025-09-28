@@ -1434,265 +1434,325 @@ gy_4 = conv_4_loops(img, D_y)
     </section>
 
     <!-- =======================
-         Part 2.4 — Multiresolution Blending
-    ====================== -->
-    <style>
-      /* Force black for title + intro paragraph */
-      #p24 h2, 
-      #p24 p.lead {
-        opacity: 1 !important;
-        filter: none !important;
-        mix-blend-mode: normal !important;
-        color: #0f172a !important;
-        -webkit-text-fill-color: #0f172a !important;
-        text-shadow: none !important;
-      }
+     Part 2.4 — Multiresolution Blending
+======================= -->
+<style>
+  /* Force black for title + intro paragraph */
+  #p24 h2, 
+  #p24 p.lead {
+    opacity: 1 !important;
+    filter: none !important;
+    mix-blend-mode: normal !important;
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+    text-shadow: none !important;
+  }
 
-      /* Force white ONLY for the “Why” paragraphs */
-      #p24 .why {
-        opacity: 1 !important;
-        filter: none !important;
-        mix-blend-mode: normal !important;
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-        background: #0f172a !important;
-        text-shadow: none !important;
-        padding: 12px 14px;
-        border-radius: 10px;
-      }
+  /* Force white ONLY for the “Why” paragraphs */
+  #p24 .why {
+    opacity: 1 !important;
+    filter: none !important;
+    mix-blend-mode: normal !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    background: #0f172a !important;
+    text-shadow: none !important;
+    padding: 12px 14px;
+    border-radius: 10px;
+  }
 
-      /* Layout helpers */
-      #p24 .tri {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(220px, 1fr));
-        gap: 16px;
-        align-items: start;
-      }
-      #p24 .duo {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(220px, 1fr));
-        gap: 16px;
-        align-items: start;
-      }
-      #p24 .full {
-        display: flex;
-        justify-content: center;   /* center horizontally */
-        gap: 12px;
-        margin-top: 12px;
-      }
-      #p24 figure { margin: 0; }
-      #p24 img {
-        width: 100%;
-        height: auto;
-        border-radius: 8px;
-        display: block;
-      }
-      #p24 .caption { font-size: 12px; color: #475569; margin-top: 6px; }
-      #p24 .badge {
-        font-size: 12px;
-        background: #eef2ff;
-        color: #3730a3;
-        border: 1px solid #c7d2fe;
-        padding: 4px 8px;
-        border-radius: 8px;
-      }
-      #p24 .card {
-        border: 1px solid #e5e7eb;
-        border-radius: 14px;
-        padding: 16px;
-        background: #ffffff;
-        margin-top: 16px;
-      }
-      #p24 .mt-0 { margin-top: 0; }
-      #p24 .mt-8 { margin-top: 8px; }
-      #p24 .mt-12 { margin-top: 12px; }
-      #p24 .mt-16 { margin-top: 16px; }
-    </style>
+  /* Layout helpers */
+  #p24 .tri {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+  #p24 .duo {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+  #p24 .full {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  #p24 figure { margin: 0; }
+  #p24 img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    display: block;
+  }
+  #p24 .caption { font-size: 12px; color: #475569; margin-top: 6px; }
+  #p24 .badge {
+    font-size: 12px;
+    background: #eef2ff;
+    color: #3730a3;
+    border: 1px solid #c7d2fe;
+    padding: 4px 8px;
+    border-radius: 8px;
+  }
+  #p24 .card {
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 16px;
+    background: #ffffff;
+    margin-top: 16px;
+  }
+  #p24 .mt-0 { margin-top: 0; }
+  #p24 .mt-8 { margin-top: 8px; }
+  #p24 .mt-12 { margin-top: 12px; }
+  #p24 .mt-16 { margin-top: 16px; }
+</style>
 
-    <section id="p24" class="section">
-      <h2>Part 2.4: Multiresolution Blending (the Oraple and others)</h2>
+<section id="p24" class="section">
+  <h2>Part 2.4: Multiresolution Blending (the Oraple and others)</h2>
 
-      <p class="lead">
-        The final leg is composition: blending images across scales so seams disappear. Using Gaussian and Laplacian stacks
-        for both inputs and for a soft mask, I combine per-level bands with
-        \[
-          L_{\text{out}}^{(i)} = G_M^{(i)} \cdot L_A^{(i)} + \big(1 - G_M^{(i)}\big) \cdot L_B^{(i)}
-        \]
-        Summing the blended bands yields the final image. The trick is that the mask is <em>also</em> blurred per level:
-        narrow transitions for fine details, wide transitions for coarse tone.
-      </p>
+  <p class="lead">
+    My final stop is multiresolution blending: hiding seams by mixing images across scales. I build Gaussian and
+    Laplacian stacks for each input and for a soft mask. At level \(i\),
+    \[
+      L_{\text{out}}^{(i)} = G_M^{(i)} \cdot L_A^{(i)} + \big(1 - G_M^{(i)}\big) \cdot L_B^{(i)}.
+    \]
+    Summing all bands reconstructs a result where broad tones fade widely and fine details cross over gently—the visual
+    trick that makes blends feel natural.
+  </p>
 
-      <!-- ================= Oraple ================= -->
-      <div class="card mt-16">
-        <span class="badge">Oraple: Apple + Orange</span>
-        <p class="lead" style="opacity:1 !important; color:#0f172a !important; filter:none !important; -webkit-text-fill-color:#0f172a !important;">
-          I chose apple and orange because they are the classic example from the paper. The round shapes and strong color
-          contrast make the seam obvious unless blending is done correctly.
-        </p>
+  <!-- ================= Oraple ================= -->
+  <div class="card mt-16">
+    <span class="badge">Oraple: Apple + Orange</span>
+    <p class="lead">
+      The classic example: two fruits with bold color and texture differences. If any seam remains, it’s obvious—which
+      makes this a good stress test for the stack idea.
+    </p>
 
-        <!-- Explanation of cosine mask -->
-        <p class="why mt-12">
-          What is a cosine mask? A cosine mask is a smooth weighting function that transitions gradually from 1 to 0 using
-          the cosine curve instead of a hard step. In practice, I pick a ramp width (in pixels) and compute values
-          \[
-            M(x) = \tfrac{1}{2}\big(1 + \cos(\theta)\big), \quad \theta \in [0, \pi],
-          \]
-          across that ramp. The result is 1 on one side, 0 on the other, and a gentle fade in between. This avoids visible
-          seams and makes the blended regions look natural.
-        </p>
+    <!-- Originals (Before) -->
+    <div class="duo mt-12">
+      <figure>
+        <img src="assets/q2_4/oraple_vertical/apple.jpeg" alt="Apple (original)">
+        <figcaption class="caption">Before: Apple (original input).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_4/oraple_vertical/orange.jpeg" alt="Orange (original)">
+        <figcaption class="caption">Before: Orange (original input).</figcaption>
+      </figure>
+    </div>
 
-        <!-- Originals -->
-        <div class="duo mt-12">
-          <figure>
-            <img src="assets/q2_4/oraple_vertical/oraple_vertical/apple.jpeg" alt="Apple (original)">
-            <figcaption class="caption">Before: Apple (original input).</figcaption>
-          </figure>
-          <figure>
-            <img src="assets/q2_4/oraple_vertical/oraple_vertical/orange.jpeg" alt="Orange (original)">
-            <figcaption class="caption">Before: Orange (original input).</figcaption>
-          </figure>
-        </div>
+    <!-- Masked pieces -->
+    <div class="tri mt-12">
+      <figure>
+        <img src="assets/q2_4/oraple_vertical/mask.png" alt="Oraple vertical cosine mask">
+        <figcaption class="caption">Cosine vertical mask. Params: levels=7, size=31, σ=5.0.</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_3/j_color.png" alt="Apple × mask (cell j)">
+        <figcaption class="caption">Masked A (Apple × mask).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_3/k_color.png" alt="Orange × (1−mask) (cell k)">
+        <figcaption class="caption">Masked B (Orange × (1−mask)).</figcaption>
+      </figure>
+    </div>
 
-        <!-- Masked pieces -->
-        <div class="tri mt-12">
-          <figure>
-            <img src="assets/q2_4/oraple_vertical/oraple_vertical/mask.png" alt="Oraple mask">
-            <figcaption class="caption">Cosine vertical mask. Params: levels=7, size=31, σ=5.0.</figcaption>
-          </figure>
-          <figure>
-            <img src="assets/q2_3/j_color.png" alt="Apple × mask (cell j)">
-            <figcaption class="caption">Masked A (Apple × mask).</figcaption>
-          </figure>
-          <figure>
-            <img src="assets/q2_3/k_color.png" alt="Orange × (1−mask) (cell k)">
-            <figcaption class="caption">Masked B (Orange × (1−mask)).</figcaption>
-          </figure>
-        </div>
+    <!-- Final (After) -->
+    <div class="full">
+      <figure>
+        <img src="assets/q2_4/oraple_vertical/result.png" alt="Oraple result">
+        <figcaption class="caption">After: Final Oraple blend.</figcaption>
+      </figure>
+    </div>
+  </div>
 
-        <!-- Final -->
-        <div class="full">
-          <figure>
-            <img src="assets/q2_4/oraple_vertical/oraple_vertical/result.png" alt="Oraple result">
-            <figcaption class="caption">Final Oraple blend.</figcaption>
-          </figure>
-        </div>
+  <!-- ================= Sunset → City Night (Horizontal) ================= -->
+  <div class="card mt-16">
+    <span class="badge">Sunset → City Night (Horizontal mask)</span>
+    <p class="why">
+      A horizon loves a horizontal seam. The sky keeps its glow while the city lights rise from below, with the cosine
+      fade preventing jagged transitions along rooftops.
+    </p>
+
+    <!-- Originals (Before) -->
+    <div class="duo mt-12">
+      <figure>
+        <img src="assets/q2_4/sunset_city_horizontal/sunset.png" alt="Sunset (original)">
+        <figcaption class="caption">Before: Sunset (original input).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_4/sunset_city_horizontal/city_night.png" alt="City night (original)">
+        <figcaption class="caption">Before: City night (original input).</figcaption>
+      </figure>
+    </div>
+
+    <!-- Masked pieces -->
+    <div class="tri mt-12">
+      <figure>
+        <img src="assets/q2_4/sunset_city_horizontal/mask.png" alt="Horizontal mask">
+        <figcaption class="caption">Horizontal cosine mask (top→bottom). Params: levels=7, size=31, σ=5.0, ramp=120.</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_4/sunset_city_horizontal/masked_A.png" alt="Sunset × mask">
+        <figcaption class="caption">Masked A (Sunset × mask).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_4/sunset_city_horizontal/masked_B.png" alt="City night × (1−mask)">
+        <figcaption class="caption">Masked B (City night × (1−mask)).</figcaption>
+      </figure>
+    </div>
+
+    <!-- Final (After) + storyboard -->
+    <div class="full">
+      <figure>
+        <img src="assets/q2_4/sunset_city_horizontal/result.png" alt="Sunset → City night blended result">
+        <figcaption class="caption">After: Final horizontal multiresolution blend.</figcaption>
+      </figure>
+    </div>
+    <div class="full mt-12">
+      <figure>
+        <img src="assets/q2_4/sunset_city_horizontal/szeliski_342_grid_color.png" alt="Sunset→City 4×3 color grid">
+        <figcaption class="caption">4×3 color grid: band contributions and reconstruction.</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- ================= City + Snowy Forest (Irregular circular mask) ================= -->
+  <div class="card mt-16">
+    <span class="badge">City + Snowy Forest</span>
+    <p class="why">
+      A built space emerging from nature: I wanted the skyline to grow out of the snowy floor. A circular soft mask
+      lets detail bloom at the center while the forest stays calm around the edge.
+    </p>
+
+    <!-- Originals (Before) -->
+    <div class="duo mt-12">
+      <figure>
+        <img src="assets/q2_4/city_forest_circular/city_skyline.png" alt="City skyline (original)">
+        <figcaption class="caption">Before: City skyline (original input).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_4/city_forest_circular/snowy_forest.png" alt="Snowy forest (original)">
+        <figcaption class="caption">Before: Snowy forest (original input).</figcaption>
+      </figure>
+    </div>
+
+    <!-- Mask + masked pieces from the correct folder -->
+    <div class="tri mt-12">
+      <figure>
+        <img src="assets/q2_4/city_forest_circular/mask.png" alt="Irregular circular mask">
+        <figcaption class="caption">Circular soft mask. Params: levels=7, size=31, σ=5.0.</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_4/city_forest_circular/masked_A.png" alt="City masked">
+        <figcaption class="caption">Masked A (City side).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_4/city_forest_circular/masked_B.png" alt="Forest masked">
+        <figcaption class="caption">Masked B (Forest side).</figcaption>
+      </figure>
+    </div>
+
+    <!-- Final (After) + per-level storyboard using the corrected paths -->
+    <div class="full">
+      <figure>
+        <img src="assets/q2_4/city_forest_circular/result.png" alt="City + Snowy Forest blended result">
+        <figcaption class="caption">After: Final irregular-mask multiresolution blend.</figcaption>
+      </figure>
+    </div>
+    <div class="full mt-12">
+      <figure>
+        <img src="assets/q2_4/city_forest_circular/szeliski_342_grid_color.png" alt="Per-level band contributions and reconstruction">
+        <figcaption class="caption">4×3 color grid: band contributions and reconstruction for the circular mask blend. Labels omitted to prevent redundancy. Images in same order as grid in 2.3</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- ================= Before/After portraits ================= -->
+  <div class="card mt-16">
+    <span class="badge">Before/After portraits</span>
+    <p class="why">
+      A small personal story: six years between photos. I aligned by eye positions so facial structure lines up; the
+      vertical mask does the gentle cross-fade across features.
+    </p>
+
+    <!-- Originals (Before) -->
+    <div class="duo mt-12">
+      <figure>
+        <img src="assets/q2_4/me_before_after_vertical_aligned/me_before.jpeg" alt="Before portrait (original)">
+        <figcaption class="caption">Before: High-school portrait (original input).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_4/me_before_after_vertical_aligned/me_after.jpeg" alt="After portrait (original)">
+        <figcaption class="caption">Before: Recent college portrait (original input).</figcaption>
+      </figure>
+    </div>
+
+    <!-- Masked pieces -->
+    <div class="tri mt-12">
+      <figure>
+        <img src="assets/q2_4/me_before_after_vertical_aligned/mask.png" alt="Vertical mask">
+        <figcaption class="caption">Vertical cosine mask. Params: levels=7, size=31, σ=5.0.</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_4/me_before_after_vertical_aligned/masked_A.png" alt="Masked before">
+        <figcaption class="caption">Masked A (Before side).</figcaption>
+      </figure>
+      <figure>
+        <img src="assets/q2_4/me_before_after_vertical_aligned/masked_B.png" alt="Masked after">
+        <figcaption class="caption">Masked B (After side).</figcaption>
+      </figure>
+    </div>
+
+    <!-- Final (After) + storyboard -->
+    <div class="full">
+      <figure>
+        <img src="assets/q2_4/me_before_after_vertical_aligned/result.png" alt="Blended portrait">
+        <figcaption class="caption">After: Final blended portrait.</figcaption>
+      </figure>
+    </div>
+    <div class="full mt-12">
+      <figure>
+        <img src="assets/q2_4/me_before_after_vertical_aligned/szeliski_342_grid_color.png" alt="Portrait 4×3 color grid">
+        <figcaption class="caption">4×3 color grid: band contributions and reconstruction. 4×3 color grid: band contributions and reconstruction.</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <!-- === Rubric mapping for Part 2.4 === -->
+  <style>
+    #p24 .rubric * {
+      opacity: 1 !important;
+      filter: none !important;
+      mix-blend-mode: normal !important;
+      color: #0f172a !important;
+      -webkit-text-fill-color: #0f172a !important;
+      text-shadow: none !important;
+    }
+  </style>
+
+  <div class="card mt-16 rubric">
+    <span class="badge">Rubric checklist — Part 2.4</span>
+    <div class="grid-balanced mt-12">
+      <div>
+        <h3 class="mt-0">Blend two images with a vertical or horizontal seam.</h3>
+        <p>Done with Apple+Orange (vertical) and Sunset→City Night (horizontal).</p>
+
+        <h3>Include 2 additional custom blends, with at least one irregular mask.</h3>
+        <p>Included City+Snowy Forest (circular irregular mask) and Before/After portraits (vertical).</p>
+
+        <h3>Illustrate the process with masked inputs and per-level outputs.</h3>
+        <p>Each example shows originals (Before), masked pieces, the final result (After), and a 4×3 per-level storyboard where available.</p>
       </div>
-
-      <!-- ================= Sunset → City Night (Horizontal) ================= -->
-      <div class="card mt-16">
-        <span class="badge">Sunset → City Night (Horizontal mask)</span>
-        <p class="why">
-          Why this pair: A horizontal seam fits scenes with a clear horizon. The soft cosine mask keeps the sunset sky at the top,
-          while the city lights take over toward the bottom, minimizing visible edges across buildings.
-        </p>
-
-        <!-- Masked pieces -->
-        <div class="tri mt-12">
-          <figure>
-            <img src="assets/q2_4/sunset_city_horizontal/sunset_city_horizontal/mask.png" alt="Horizontal mask">
-            <figcaption class="caption">Horizontal cosine mask (top→bottom). Params: levels=7, size=31, σ=5.0, ramp=120.</figcaption>
-          </figure>
-          <figure>
-            <img src="assets/q2_4/sunset_city_horizontal/sunset_city_horizontal/masked_A.png" alt="Sunset × mask">
-            <figcaption class="caption">Masked A (Sunset × mask).</figcaption>
-          </figure>
-          <figure>
-            <img src="assets/q2_4/sunset_city_horizontal/sunset_city_horizontal/masked_B.png" alt="City night × (1−mask)">
-            <figcaption class="caption">Masked B (City night × (1−mask)).</figcaption>
-          </figure>
-        </div>
-
-        <!-- Final -->
-        <div class="full">
-          <figure>
-            <img src="assets/q2_4/sunset_city_horizontal/sunset_city_horizontal/result.png" alt="Sunset → City night blended result">
-            <figcaption class="caption">Final horizontal multiresolution blend.</figcaption>
-          </figure>
-        </div>
-
-        <!-- 4×3 color grid -->
-        <div class="full mt-12">
-          <figure>
-            <img src="assets/q2_4/sunset_city_horizontal/sunset_city_horizontal/szeliski_342_grid_color.png" alt="Sunset→City 4×3 color grid">
-            <figcaption class="caption">4×3 color grid: band contributions and reconstruction for the horizon blend. Labelling is the same as in 2.3's grid</figcaption>
-          </figure>
-        </div>
+      <div class="callout">
+        <strong>Motivation:</strong> Scale-aware blending is a cross-fade that respects detail. The mask’s Gaussian stack
+        widens transitions for low frequencies and narrows them for high frequencies, which neatly hides seams.
       </div>
+    </div>
+  </div>
+</section>
 
-      <!-- ================= Before/After portraits ================= -->
-      <div class="card mt-16">
-        <span class="badge">Before/After portraits</span>
-        <p class="why">
-          Why these pairs: The portraits show a personal before/after. One photo is from high school six years
-          ago and the other is a recent college portrait. They were aligned using my eye positions so the face
-          parts line up. A vertical cosine mask lets the two halves merge smoothly across the face.
-        </p>
-
-        <!-- Masked pieces -->
-        <div class="tri mt-12">
-          <figure>
-            <img src="assets/q2_4/me_before_after_vertical_aligned/me_before_after_vertical_aligned/mask.png" alt="Vertical mask">
-            <figcaption class="caption">Vertical cosine mask. Params: levels=7, size=31, σ=5.0.</figcaption>
-          </figure>
-          <figure>
-            <img src="assets/q2_4/me_before_after_vertical_aligned/me_before_after_vertical_aligned/masked_A.png" alt="Masked before">
-            <figcaption class="caption">Masked A (Before side).</figcaption>
-          </figure>
-          <figure>
-            <img src="assets/q2_4/me_before_after_vertical_aligned/me_before_after_vertical_aligned/masked_B.png" alt="Masked after">
-            <figcaption class="caption">Masked B (After side).</figcaption>
-          </figure>
-        </div>
-
-        <!-- Final -->
-        <div class="full">
-          <figure>
-            <img src="assets/q2_4/me_before_after_vertical_aligned/me_before_after_vertical_aligned/result.png" alt="Blended portrait">
-            <figcaption class="caption">Final blended portrait.</figcaption>
-          </figure>
-        </div>
-
-        <!-- 4×3 color grid -->
-        <div class="full mt-12">
-          <figure>
-            <img src="assets/q2_4/me_before_after_vertical_aligned/me_before_after_vertical_aligned/szeliski_342_grid_color.png" alt="Portrait 4×3 color grid">
-            <figcaption class="caption">4×3 color grid: band contributions and reconstruction for the portrait blend. Labelling is the same as in 2.3's grid</figcaption>
-          </figure>
-        </div>
-      </div>
-
-      <!-- === Rubric mapping for Part 2.4 === -->
-      <style>
-        #p24 .rubric * {
-          opacity: 1 !important;
-          filter: none !important;
-          mix-blend-mode: normal !important;
-          color: #0f172a !important;
-          -webkit-text-fill-color: #0f172a !important;
-          text-shadow: none !important;
-        }
-      </style>
-
-      <div class="card mt-16 rubric">
-        <span class="badge">Rubric checklist — Part 2.4</span>
-        <div class="grid-balanced mt-12">
-          <div>
-            <h3 class="mt-0">Blend two images with a vertical or horizontal seam.</h3>
-            <p>I blended Apple and Orange (the classic “oraple”) with a vertical cosine mask. The result is shown in “Final Oraple blend.”</p>
-
-            <h3>Include 2 additional custom blends, with at least one irregular mask.</h3>
-            <p>I blended Sunset+City Night with a horizontal cosine mask, and Before/After portraits with a vertical cosine mask.  
-            I also used a non-straight circular mask for City+Forest to demonstrate irregular transitions.</p>
-
-            <h3>Illustrate the process with masked inputs and per-level outputs.</h3>
-            <p>I showed masked inputs (A×mask and B×(1−mask)) and per-level band contributions in a 4×3 color storyboard, connecting the math to the final images.</p>
-          </div>
-          <div class="callout">
-            <strong>Motivation:</strong> Multiresolution blending is a scale-aware cross-fade. Using the Gaussian stack of the mask makes small details blend narrowly while large tones blend broadly, which hides seams.
-          </div>
-        </div>
-      </div>
-    </section>
 
     <!-- =======================
          Reflection — What I Learned
