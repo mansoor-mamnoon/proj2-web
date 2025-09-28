@@ -995,6 +995,98 @@ gy_4 = conv_4_loops(img, D_y)
         </p>
       </div>
 
+<!-- === Cutoff justification === -->
+<div class="card mt-16">
+  <span class="badge">why these cutoffs?</span>
+  <div class="grid-balanced mt-12">
+    <div>
+      <h3 class="mt-0">How I picked numbers</h3>
+      <p>
+        For a hybrid to work, the low image should be clear when you step back, and the high image
+        should pop out when you look up close. I picked the blur amounts so that big shapes (like heads
+        and outlines) stay in the low-pass image, while sharp edges (wrinkles, whiskers, eyes) stay
+        in the high-pass image without making halos.
+      </p>
+
+      <h4 class="mt-12">Simple rules I followed</h4>
+      <ul>
+        <li>
+          <strong>Blur strength (sigma):</strong> A bigger <code>sigma</code> means stronger blur.  
+          I used <code>low_sigma=4</code> to keep broad shapes, and <code>high_sigma=2–3</code>
+          so details stay visible without glowing edges.
+        </li>
+        <li>
+          <strong>Kernel size:</strong> The filter box has to be wide enough to “hold” the blur.  
+          If it’s too small, the blur gets chopped off at the edges — in the FFT this shows up
+          as stripes or ripples instead of a clean fade.  
+          That’s why I used <code>size=21</code> with sigma=4 and <code>size=13</code> with sigma=2–3:
+          just big enough so the blur looks smooth and the FFT has a clear center or edge pattern.
+        </li>
+        <li>
+          <strong>Avoiding halos:</strong> If the high-pass blur is too weak, you see bright outlines.
+          If it’s too strong, the high image disappears. I tuned until it looked clean.
+        </li>
+      </ul>
+    </div>
+
+    <div>
+      <h3 class="mt-0">What I used per pair</h3>
+      <table class="table">
+        <tr>
+          <th>Pair</th>
+          <th>Low-pass (size, sigma)</th>
+          <th>High-pass (size, sigma)</th>
+          <th>Why</th>
+        </tr>
+        <tr>
+          <td><code>derek_nutmeg</code></td>
+          <td>21, 4</td>
+          <td>13, 3</td>
+          <td>Derek’s head shape needs sigma=4; cat whiskers stay sharp with sigma=3.</td>
+        </tr>
+        <tr>
+          <td><code>person_oldman</code> (FFT demo)</td>
+          <td>21, 4</td>
+          <td>13, 2</td>
+          <td>Wrinkles show best with sigma=2; person’s face stays smooth with sigma=4.</td>
+        </tr>
+        <tr>
+          <td><code>einstein_mar</code></td>
+          <td>21, 4</td>
+          <td>17, 2</td>
+          <td>Faces are soft, so I used a bigger size=17 for smoother transitions.</td>
+        </tr>
+        <tr>
+          <td><code>cat_lion</code></td>
+          <td>21, 4</td>
+          <td>13, 3</td>
+          <td>Lion mane is very textured, so sigma=3 keeps it clear without harsh halos.</td>
+        </tr>
+      </table>
+
+      <div class="explain mt-12">
+        <h4 class="mt-0">How I tested</h4>
+        <ul>
+          <li><strong>Zoom test:</strong> Step back → see the low image. Get close → see the high image.</li>
+          <li><strong>Edges check:</strong> I looked at eyes, lips, and hair where halos show up first.</li>
+          <li><strong>FFT check:</strong> Low-pass FFT shows a bright center (smooth parts kept).  
+              High-pass FFT shows dim center + bright edges (details kept).  
+              The hybrid FFT combines both patterns.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout mt-12">
+    <strong>Takeaway:</strong> Using <code>sigma=4</code> for low-pass kept stable shapes.  
+    <code>sigma=2</code> made wrinkles crisp, while <code>sigma=3</code> worked better for fur and hair.  
+    Kernel sizes (13 or 21) were just big enough so the blur wasn’t chopped off, keeping the FFT smooth.
+  </div>
+</div>
+
+
+
+
       <!-- Full process example with FFTs (PERSON_OLDMAN SET) -->
       <div class="card mt-16">
         <span class="badge">full process: person + old man (with FFTs)</span>
